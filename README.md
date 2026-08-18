@@ -9,5 +9,3 @@ https://conacyt.mx/sistema-nacional-de-investigadores/archivo-historico/
 - `sni_historico_genero.ipynb` — serie histórica 2015-2025 (excluye 2022, archivo oficial no utilizable) de investigadores por año y género, con desglose por nivel (C, 1, 2, 3, E) y por área de conocimiento (Físico-Matemáticas, Ciencias Sociales). Fuente: [Archivo histórico del SNII](https://secihti.mx/snii/archivo-historico-del-snii/).
 - `datasets/` — padrones anuales (`SNI<año>.xlsx`) y catálogo de nombres de mujeres (`mujeres.csv`) usado para la clasificación de género.
 - `fig_sni/` — gráficas generadas por los notebooks.
-
-La carpeta `genero/` (análisis de brecha de género municipal en Colima) se movió al repositorio `python`, en `guille/genero`.
