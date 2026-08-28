@@ -1,0 +1,18 @@
+# Despliegue en Render — https://render.com
+# Servicio web gratuito que sirve la app de Streamlit en app/.
+services:
+  - type: web
+    name: sni-explorer
+    runtime: python
+    plan: free
+    rootDir: app
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: "false"
