@@ -14,3 +14,16 @@ https://conacyt.mx/sistema-nacional-de-investigadores/archivo-historico/
 ## Dashboard
 
 Dashboard interactivo (Plotly.js, sin backend) con estos mismos datos, publicado en el portafolio: https://isadoji.github.io/sni-dashboard.html
+
+## App interactiva (`app/`)
+
+Explorador en Streamlit con filtros por **año, área, nivel, género, región y
+entidad federativa** y mapa coroplético de México por estado. Proyecto modular
+(`sni_dashboard/`, una clase por tarea) listo para desplegar en Render con el
+`render.yaml` de la raíz. Ver [`app/README.md`](app/README.md).
+
+```bash
+cd app && pip install -r requirements.txt
+python build_dataset.py --check     # genera app/data/sni_tidy.csv
+streamlit run streamlit_app.py
+```
