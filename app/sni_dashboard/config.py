@@ -72,6 +72,9 @@ class YearConfig:
     area_col: str
     estado_col: str
     emerito_col: str | None = None
+    titulo_col: str | None = None          # NOBILIS / GRADO ACADÉMICO (DR., DRA., ...)
+    cvu_col: str | None = None
+    apellido_cols: tuple[str, ...] = ()    # solo en modo 'dado' (apellidos en columnas aparte)
 
     @property
     def path_name(self) -> str:
@@ -80,22 +83,32 @@ class YearConfig:
 
 # 2022 se excluye: el archivo oficial no es utilizable.
 YEAR_CONFIGS: list[YearConfig] = [
-    YearConfig(2015, "SNI2015.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO"),
-    YearConfig(2016, "SNI2016.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO"),
-    YearConfig(2017, "SNI2017.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO"),
-    YearConfig(2018, "SNI2018.xlsx", 0, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO"),
-    YearConfig(2019, "SNI2019.xlsx", 0, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO"),
+    YearConfig(2015, "SNI2015.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
+               titulo_col="NOBILIS", apellido_cols=("PRIEMR APELLIDO", "SEGUNDO APELLIDO")),
+    YearConfig(2016, "SNI2016.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
+               titulo_col="NOBILIS", apellido_cols=("APELLIDO PATERNO", "APELLIDO MATERNO")),
+    YearConfig(2017, "SNI2017.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
+               titulo_col="NOBILIS", apellido_cols=("PATERNO", "MATERNO")),
+    YearConfig(2018, "SNI2018.xlsx", 0, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
+               titulo_col="NOBILIS", apellido_cols=("PATERNO", "MATERNO")),
+    YearConfig(2019, "SNI2019.xlsx", 0, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
+               titulo_col="NOBILIS", cvu_col="CVU", apellido_cols=("PATERNO", "MATERNO")),
     YearConfig(2020, "SNI2020.xlsx", 0, "Nombre del Investigador", "apellidos_nombre",
-               "Categoría", "Área del Conocimiento", "Entidad Federativa"),
+               "Categoría", "Área del Conocimiento", "Entidad Federativa", titulo_col="Nobilis"),
     YearConfig(2021, "SNI2021.xlsx", 0, "NOMBRE DEL INVESTIGADOR(A)", "apellidos_nombre",
-               "CATEGORÍA", "ÁREA DEL CONOCIMIENTO", "ENTIDAD FEDERATIVA"),
+               "CATEGORÍA", "ÁREA DEL CONOCIMIENTO", "ENTIDAD FEDERATIVA",
+               titulo_col="NOBILIS", cvu_col="CVU"),
     YearConfig(2023, "SNI2023_official.xlsx", 0, "NOMBRE DEL INVESTIGADOR",
                "apellidos_nombre", "NIVEL", "ÁREA DEL CONOCIMIENTO",
-               "ENTIDAD FEDERATIVA DE ADSCRIPCIÓN", emerito_col="EMÉRITO"),
+               "ENTIDAD FEDERATIVA DE ADSCRIPCIÓN", emerito_col="EMÉRITO",
+               titulo_col="GRADO ACADÉMICO", cvu_col="CVU"),
+    # 2024 y 2025 no traen título: el sexo sale del CVU o del nombre en otros años.
+    # 2025 se lee de SNI2025.xlsx (el original). SNI2025_CLASIFICADO.xlsx es ese mismo archivo
+    # más la columna GENERO, que ahora escribe sni2025.ipynb con este mismo ETL.
     YearConfig(2024, "SNI2024_official.xlsx", 0, "NOMBRE DEL INVESTIGADOR",
                "apellidos_nombre", "NIVEL", "ÁREA DE CONOCIMIENTO",
-               "ENTIDAD DE ACREDITACIÓN"),
-    YearConfig(2025, "SNI2025_CLASIFICADO.xlsx", 0, "NOMBRE DEL INVESTIGADOR",
+               "ENTIDAD DE ACREDITACIÓN", cvu_col="CVU"),
+    YearConfig(2025, "SNI2025.xlsx", 0, "NOMBRE DEL INVESTIGADOR",
                "apellidos_nombre", "NIVEL", "ÁREA DE CONOCIMIENTO",
-               "ENTIDAD DE ACREDITACIÓN"),
+               "ENTIDAD DE ACREDITACIÓN", cvu_col="CVU padrón corregido"),
 ]

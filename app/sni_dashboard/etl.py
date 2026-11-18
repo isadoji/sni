@@ -1,7 +1,13 @@
 """ETL: de los padrones .xlsx al CSV "tidy".
 
 - ``PadronReader``    : lee UN padrón anual y devuelve su tabla larga normalizada.
-- ``DatasetBuilder``  : combina todos los años, agrega a conteos y guarda el CSV.
+- ``DatasetBuilder``  : combina todos los años, resuelve el sexo (``SexoResolver``, que
+                        necesita ver todos los años a la vez), agrega a conteos y guarda el CSV.
+
+Las columnas de identidad (CVU, nombre) solo viven en memoria: el CSV es de conteos.
+
+``generos_por_anio()`` expone el sexo resuelto por fila del padrón, para que los notebooks
+(``sni_historico_genero.ipynb``, ``sni2025.ipynb``) usen exactamente la misma clasificación.
 """
 from __future__ import annotations
 
@@ -12,9 +18,11 @@ import pandas as pd
 
 from . import config
 from .config import YearConfig
-from .normalize import AreaClassifier, EntidadNormalizer, GenderClassifier, RegionMapper
+from .normalize import (AreaClassifier, EntidadNormalizer, GenderClassifier, RegionMapper,
+                        SexoResolver, sin_acentos)
 
 COLS = ["AÑO", "AREA", "NIVEL", "GENERO", "ENTIDAD", "REGION"]
+IDENT = ["cvu", "nombre", "pila", "sexo_titulo"]
 
 
 class PadronReader:
@@ -48,6 +56,20 @@ class PadronReader:
             nivel = nivel.where(~es_em, "E")
         return nivel.where(nivel.isin(config.ORDEN_NIVELES))
 
+    def _ident(self, df: pd.DataFrame, cfg: YearConfig) -> pd.DataFrame:
+        """Columnas para resolver el sexo: CVU, nombre completo y de pila normalizados, título."""
+        pila = self._nombre_pila(df, cfg).map(sin_acentos)
+        if cfg.modo == "apellidos_nombre":
+            completo = df[cfg.name_col].astype(str).str.replace(",", " ")
+        else:
+            completo = df[list(cfg.apellido_cols) + [cfg.name_col]].fillna("").astype(str).agg(" ".join, axis=1)
+        cvu = (pd.to_numeric(df[cfg.cvu_col], errors="coerce").astype("Int64")
+               if cfg.cvu_col else pd.Series(pd.NA, index=df.index, dtype="Int64"))
+        tit = (SexoResolver.sexo_titulo(df[cfg.titulo_col]) if cfg.titulo_col
+               else pd.Series(None, index=df.index, dtype=object))
+        return pd.DataFrame({"cvu": cvu, "nombre": completo.map(sin_acentos).replace("", None),
+                             "pila": pila.replace("", None), "sexo_titulo": tit})
+
     def read(self, cfg: YearConfig) -> pd.DataFrame:
         df = pd.read_excel(self.datasets_dir / cfg.file, skiprows=cfg.skiprows)
         entidad = self.entidad.normalize_series(df[cfg.estado_col])
@@ -55,11 +77,11 @@ class PadronReader:
             "AÑO": cfg.year,
             "AREA": self.area.classify_series(df[cfg.area_col]),
             "NIVEL": self._nivel(df, cfg),
-            "GENERO": self.gender.classify_series(self._nombre_pila(df, cfg)),
             "ENTIDAD": entidad,
             "REGION": self.region.map_series(entidad),
         })
-        return out
+        out["FILA"] = df.index                   # fila del .xlsx leído (con skiprows)
+        return pd.concat([out, self._ident(df, cfg)], axis=1)
 
 
 class DatasetBuilder:
@@ -82,7 +104,14 @@ class DatasetBuilder:
             if verbose:
                 print(f"  {cfg.year}: {len(larga):>6} registros")
 
-        detalle = pd.concat(partes, ignore_index=True).dropna(subset=["AREA", "NIVEL"])
+        detalle = pd.concat(partes, ignore_index=True)
+        resolver = SexoResolver(self.reader.gender).fit(detalle[IDENT])
+        detalle["GENERO"], detalle["FUENTE_SEXO"] = resolver.resolve(detalle[IDENT])
+        self.fuente_sexo = pd.crosstab(detalle["AÑO"], detalle["FUENTE_SEXO"])
+        if verbose:
+            print("\nFuente del sexo por año:\n" + self.fuente_sexo.to_string())
+        self.sexo_por_fila = detalle[["AÑO", "FILA", "GENERO", "FUENTE_SEXO"]]
+        detalle = detalle.drop(columns=IDENT + ["FILA", "FUENTE_SEXO"]).dropna(subset=["AREA", "NIVEL"])
         self._tidy = (detalle
                       .groupby(COLS, observed=True)
                       .size()
@@ -113,3 +142,12 @@ class DatasetBuilder:
         sin = t.loc[t["ENTIDAD"] == config.SIN_DATO, "N"].sum()
         lineas += ["", f"'{config.SIN_DATO}': {sin} ({100 * sin / t['N'].sum():.1f}%)"]
         return "\n".join(lineas)
+
+
+def generos_por_anio(verbose: bool = False) -> dict[int, pd.Series]:
+    """{año: Serie GENERO (MUJER/HOMBRE)} indexada por la fila de
+    ``pd.read_excel(datasets/<cfg.file>, skiprows=cfg.skiprows)``. Lee todos los años
+    porque el sexo de un año se apoya en el CVU y el nombre de los demás."""
+    b = DatasetBuilder()
+    b.build(verbose=verbose)
+    return {a: g.set_index("FILA")["GENERO"] for a, g in b.sexo_por_fila.groupby("AÑO")}
