@@ -55,7 +55,7 @@ python descarga_pnt.py --anios 2021-2025                # todo (reanudable)
 - Por cada universidad y año, el script busca en el listado de obligaciones los formatos de remuneraciones (general y docente, sin el tabulador) y baja todas sus páginas.
 - Las peticiones son secuenciales, con 1 s de pausa entre ellas, y reintentan con espera creciente.
 - Si se corta, se vuelve a correr el mismo comando: salta las páginas ya bajadas y los formatos completos.
-- Se corre en el nodo de login dentro de `screen` (no con sbatch). La corrida de 2021–2025 usa dos sesiones: `pnt_udeg` (solo UdeG, ~2 M registros) y `pnt_resto` (las otras 33). Avance:
+- Se corre en el nodo de login dentro de `screen` (no con sbatch). La corrida de 2021–2025 usa dos sesiones: `pnt_udeg` (solo UdeG, ~2 M registros) y `pnt_resto` (las otras 33). En cola, para cuando terminen: `pnt_udeg_extra` y `pnt_resto_extra`, con 2015–2020 y 2026 (2026 queda parcial y habrá que repetirlo en 2027). Avance:
 
 ```bash
 ssh acaxees01 'tail -3 /storage/isadoji/sni/uni/data/logs/screen_*.out'
@@ -65,7 +65,7 @@ Notas de la API (no documentada): las páginas empiezan en 0, `size` ≤ 100, el
 
 ## Hoja de ruta
 
-1. ~~Script de descarga~~ (listo); corrida 2021–2025 en curso desde 2026-11-18; conversión a parquet pendiente.
+1. ~~Script de descarga~~ (listo); corrida 2021–2025 en curso desde 2026-11-18, 2015–2020 + 2026 en cola; conversión a parquet pendiente.
 2. Limpieza: homologar sexo (Mujer/Hombre y Femenino/Masculino), montos, fechas y los dos esquemas (general y docente); quitar duplicados; corte anual con el 4.º trimestre.
 3. Taxonomía de puestos homologada entre universidades.
 4. Análisis transversal 2025: % de mujeres por nivel; regresión log(salario) ~ sexo + puesto + área por universidad.

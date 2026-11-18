@@ -56,6 +56,10 @@ Está protegida por Cloudflare: desde un servidor puede devolver la página "Jus
 - Entorno en el cluster: `condaon` (entorno `base`: requests 2.34 y pandas, sin pyarrow). Para el parquet hará falta un entorno propio (`uni`); ningún entorno actual tiene requests + pandas + pyarrow.
 - Correr en el nodo de login dentro de `screen` (no hay tmux), no con sbatch.
 - Tamaño: ~15 KB por página comprimida, unos 0.6 GB para 2021–2025.
+- Corridas lanzadas el 2026-11-18 en acaxees01 (sesiones de `screen`):
+  - `pnt_udeg` (UdeG, 2021–2025) y `pnt_resto` (las otras 33, 2021–2025). Velocidad medida: ~5 s/página en UdeG (~28 h) y ~2.3 s/página en el resto (~13 h).
+  - En cola: `pnt_udeg_extra` y `pnt_resto_extra`, con 2015–2020 y 2026. Cada una espera a que termine su sesión correspondiente para no tener más de dos procesos a la vez.
+  - 2026 queda parcial (el año está en curso); hay que volver a correrlo en 2027 para completar el 4.º trimestre.
 
 ## Universidades (id_sujeto, id_entidad, siglas)
 551,1,UAA | 682,2,UABC | 788,3,UABCS | 856,4,UACAM | 857,4,UNACAR | 1369,7,UNACH | 1433,8,UACH | 1434,8,UACJ | 3098,5,UAdeC | 1153,6,UCOL | 1847,10,UJED | 2003,11,UG | 3110,12,UAGRO | 14669,13,UAEH | 2936,14,UdeG | 3334,15,UAEMex | 3533,16,UMSNH | 3631,17,UAEM | 3777,18,UAN | 11187,19,UANL | 11731,20,UABJO | 4479,21,BUAP | 4594,22,UAQ | 12851,23,UQROO | 4776,24,UASLP | 4865,25,UAS | 5027,26,UNISON | 4920,26,ITSON | 5119,27,UJAT | 5277,28,UAT | 5389,29,UATx | 5642,30,UV | 5870,31,UADY | 5968,32,UAZ
@@ -98,7 +102,7 @@ Los IDs de formato de remuneraciones por universidad están en `pnt_remuneracion
 - Hueco detectado: nadie ha usado la fracción VIII de forma sistemática en todas las UPE, ni ha hecho trayectorias con ella.
 
 ## Próximos pasos
-1. Descarga: script listo y probado (UAS, UAT, UAEH; 2026-11-18). Falta la corrida completa y la conversión JSON → parquet en `data/raw/{siglas}/{año}.parquet`.
+1. Descarga: script listo y probado (UAS, UAT, UAEH; 2026-11-18). Corrida 2021–2025 en curso y 2015–2020 + 2026 en cola; falta la conversión JSON → parquet en `data/raw/{siglas}/{año}.parquet`.
 2. Limpieza: homologar el sexo, parsear montos y fechas, deduplicar, quedarse con el 4.º trimestre de cada año.
 3. Taxonomía de puestos: directivo alto / mando medio / académico TC por categoría / asignatura / administrativo / apoyo.
 4. Análisis transversal 2025: % de mujeres por nivel; brecha salarial a igual puesto (regresión log(salario) ~ sexo + puesto + área, por universidad).
