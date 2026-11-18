@@ -1,14 +1,39 @@
 # Explorador interactivo del padrón SNI/SNII
 
 App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
-Filtros por **año, área de conocimiento, nivel, género, región y entidad
-federativa**, con mapa coroplético de México por estado y desgloses.
+
+## Versiones
+
+- **Versión 2 (la que corre en Render desde 2026-11-18)**, `streamlit_app.py` →
+  `sni_dashboard/app_v2.py`. Barra lateral solo con **Año** y **Género**; el
+  **mapa es el selector de entidades**: siempre muestra las 32 entidades con el
+  mismo encuadre (no se reescala ni borra estados al seleccionar). Clic en el punto
+  de un estado lo selecciona; Shift+clic, recuadro o lazo seleccionan varios; el
+  botón *Ver todo el país* borra la selección.
+  - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,
+    nivel, área, región).
+  - Con uno o más estados: KPIs de la selección y evolución por área y por nivel,
+    en paneles Mujeres / Hombres.
+  - Logo *SNI Explorer* en `assets/logo.png` e `assets/icono.png` (favicon y
+    barra lateral).
+  - El mapa son polígonos en ejes cartesianos (lon, lat) con un punto por estado,
+    no un coroplético geo: en Streamlit un coroplético geo no emite selección. La
+    figura no depende de la selección (si cambiara, Streamlit la redibuja y la
+    selección se pierde) y usa `dragmode="pan"` con ejes fijos (con
+    `dragmode="select"` un clic borra la selección en vez de seleccionar).
+- **Versión 1 (respaldo)**, `streamlit_app_v1.py` → `sni_dashboard/app.py`: barra
+  con filtros por año, área, nivel, género, región y entidad, mapa coroplético y
+  desgloses. Tag git `app-v1`. Para volver a ella en Render, cambiar el start
+  command a `streamlit run streamlit_app_v1.py ...` o copiar ese archivo sobre
+  `streamlit_app.py`.
 
 ## Estructura (un módulo = una responsabilidad)
 
 ```
 app/
-├── streamlit_app.py          # entrada: Dashboard().run()
+├── streamlit_app.py          # entrada v2: DashboardV2().run()
+├── streamlit_app_v1.py       # entrada v1 (respaldo): Dashboard().run()
+├── assets/                   # logo.png, icono.png (SNI Explorer)
 ├── build_dataset.py          # CLI del ETL -> data/sni_tidy.csv
 ├── requirements.txt
 ├── .streamlit/config.toml
@@ -22,7 +47,8 @@ app/
     ├── data.py               # SNIRepository: carga + catálogos de opciones + filter()
     ├── filters.py            # FilterState (dataclass) · SidebarController (dibuja la barra)
     ├── charts.py             # Metrics (KPIs) · ChartBuilder (figuras Plotly)
-    └── app.py                # Dashboard: compone repo -> filtros -> figuras
+    ├── app.py                # v1 Dashboard: compone repo -> filtros -> figuras
+    └── app_v2.py             # v2 DashboardV2 + MapaSelector (mapa como selector)
 ```
 
 Flujo: `PadronReader` lee cada `SNI<año>.xlsx` y lo normaliza con las 4 clases de
@@ -41,7 +67,8 @@ pip install -r requirements.txt
 python build_dataset.py --check
 
 # 2. levantar la app
-streamlit run streamlit_app.py
+streamlit run streamlit_app.py        # v2
+streamlit run streamlit_app_v1.py     # v1 (respaldo)
 ```
 
 ## Despliegue en Render

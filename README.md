@@ -20,11 +20,13 @@ https://conacyt.mx/sistema-nacional-de-investigadores/archivo-historico/
 
 ## App interactiva (`app/`)
 
-Explorador en [Streamlit](https://streamlit.io) sobre la serie histórica
-2015-2025, con filtros por **año, área de conocimiento, nivel, género, región (8
-regiones geográficas) y entidad federativa**, mapa coroplético de México por
-estado, KPIs (total, mujeres/hombres, entidades con registro) y gráficas de
-evolución, área, nivel y región. Desplegada en Render como servicio web gratuito
+Explorador *SNI Explorer* en [Streamlit](https://streamlit.io) sobre la serie
+histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): filtros de año y
+género, y el mapa de México como selector de estados; sin selección muestra KPIs
+nacionales y las gráficas de evolución, nivel, área y región; con uno o varios
+estados, sus KPIs y su evolución por área y por nivel. La **versión 1** (filtros
+por año, área, nivel, género, región y entidad) queda de respaldo en
+`app/streamlit_app_v1.py` (tag `app-v1`); detalles en `app/README.md`. Desplegada en Render como servicio web gratuito
 (la instancia free se suspende tras un rato de inactividad, así que la primera
 visita puede tardar ~50 s en despertar).
 
@@ -32,7 +34,9 @@ visita puede tardar ~50 s en despertar).
 
 ```
 app/
-├── streamlit_app.py          # entrada: Dashboard().run()
+├── streamlit_app.py          # entrada v2: DashboardV2().run()
+├── streamlit_app_v1.py       # entrada v1 (respaldo)
+├── assets/                   # logo SNI Explorer
 ├── build_dataset.py          # CLI del ETL -> data/sni_tidy.csv
 ├── requirements.txt
 ├── render.yaml               # (en la raíz del repo) Blueprint de Render
@@ -47,7 +51,8 @@ app/
     ├── data.py               # SNIRepository: carga + catálogos de opciones + filter()
     ├── filters.py            # FilterState (dataclass) · SidebarController
     ├── charts.py             # Metrics (KPIs) · ChartBuilder (figuras Plotly)
-    └── app.py                # Dashboard: compone repo -> filtros -> figuras
+    ├── app.py                # v1 Dashboard
+    └── app_v2.py             # v2 DashboardV2 + MapaSelector
 ```
 
 `app/data/sni_tidy.csv` (AÑO × AREA × NIVEL × GENERO × ENTIDAD × REGION → N,
