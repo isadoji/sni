@@ -26,6 +26,8 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
     individuales la escala radial de cada nivel es fija en todos los años para ese
     estado; en *2015–2025* se suman todos los años con su propia escala. La
     evolución anual por área y por nivel queda en un desplegable.
+  - Pie de página: autoras (Isabel Domínguez Jiménez, María Elena Tejeda Yeomans),
+    fuente de datos, enlace al código, cómo citar y fecha de actualización.
   - Logo *SNII Explorer* en `assets/logo.png` e `assets/icono.png` (favicon y
     barra lateral).
   - El mapa son polígonos en ejes cartesianos (lon, lat) con un punto por estado,
