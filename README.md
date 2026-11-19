@@ -24,7 +24,7 @@ Explorador *SNI Explorer* en [Streamlit](https://streamlit.io) sobre la serie
 histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): filtros de año y
 género, y el mapa de México como selector de estados; sin selección muestra KPIs
 nacionales y las gráficas de evolución, nivel, área y región; con uno o varios
-estados, sus KPIs y su evolución por área y por nivel. La **versión 1** (filtros
+estados, sus KPIs y un spider web nivel × área × género por estado. La **versión 1** (filtros
 por año, área, nivel, género, región y entidad) queda de respaldo en
 `app/streamlit_app_v1.py` (tag `app-v1`); detalles en `app/README.md`. Desplegada en Render como servicio web gratuito
 (la instancia free se suspende tras un rato de inactividad, así que la primera

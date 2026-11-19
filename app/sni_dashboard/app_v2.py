@@ -166,7 +166,7 @@ LOGO, ICONO = ASSETS / "logo.png", ASSETS / "icono.png"
 
 
 class DashboardV2(Dashboard):
-    TITLE = "Padrón del Sistema Nacional de Investigadores"
+    TITLE = "Padrón del Sistema Nacional de Investigadoras e Investigadores"
     SUBTITLE = ("Serie histórica 2015-2025 · selecciona uno o varios estados en el "
                 "mapa para ver su evolución por área y por nivel")
 
@@ -213,6 +213,33 @@ class DashboardV2(Dashboard):
                           legend=dict(orientation="h", y=-0.2))
         return fig
 
+    def _spiders(self, sel: list[str], yr: tuple[int, int],
+                 generos: list[str]) -> None:
+        """Telarañas nivel × área × género, una fila por estado seleccionado.
+
+        La escala radial de cada nivel es fija dentro de cada estado: el máximo de
+        todos los años, áreas y géneros de ese estado, para que al cambiar de año
+        se vea el crecimiento (igual que en el dashboard del portafolio).
+        """
+        st.subheader("Spider web: nivel × área × género")
+        anios = [a for a in self.repo.years if yr[0] <= a <= yr[1]]
+        anio = (st.select_slider("Año", options=anios, value=anios[-1],
+                                 key="anio_spider") if len(anios) > 1 else anios[0])
+        st.caption("Investigadores por área de conocimiento y género en cada nivel. "
+                   "La escala de cada nivel es la misma en todos los años para ese "
+                   "estado. *Interdisciplinaria* vale 0 antes de 2023 (no existía).")
+        df = self.repo.df
+        sub = df[df["ENTIDAD"].isin(sel) & df["GENERO"].isin(generos)]
+        areas = sorted(self.repo.areas)
+        niveles = self.repo.niveles
+        for estado in sel:
+            d = sub[sub["ENTIDAD"] == estado]
+            t = d.groupby(["AÑO", "NIVEL", "AREA", "GENERO"])["N"].sum()
+            tope = t.groupby(level="NIVEL").max()
+            st.plotly_chart(_figura_spider(t, anio, areas, niveles, generos, tope,
+                                           estado),
+                            use_container_width=True, key=f"spider_{estado}")
+
     def run(self) -> None:
         st.set_page_config(page_title="SNI Explorer · padrón SNI/SNII",
                            page_icon=str(ICONO), layout="wide")
@@ -238,10 +265,64 @@ class DashboardV2(Dashboard):
                            "sin entidad o en el extranjero: no se muestran en el mapa.")
             self._desgloses(charts)
         else:
-            st.subheader("Evolución por área de conocimiento")
-            st.plotly_chart(self._evolucion(dff, "AREA", sorted(self.repo.areas),
-                                            "Área"), use_container_width=True)
-            st.subheader("Evolución por nivel")
-            st.plotly_chart(self._evolucion(dff, "NIVEL", self.repo.niveles,
-                                            "Nivel"), use_container_width=True)
+            self._spiders(sel, yr, generos)
+            with st.expander("Evolución por área y por nivel (series anuales)"):
+                st.plotly_chart(self._evolucion(dff, "AREA", sorted(self.repo.areas),
+                                                "Área"), use_container_width=True)
+                st.plotly_chart(self._evolucion(dff, "NIVEL", self.repo.niveles,
+                                                "Nivel"), use_container_width=True)
         self._tabla(charts, dff)
+
+
+_CORTO = {
+    "BIOLOGÍA Y QUÍMICA": "Biología y Química",
+    "BIOTECNOLOGÍA Y CIENCIAS AGROPECUARIAS": "Biotec. y Agropec.",
+    "CIENCIAS SOCIALES": "Sociales",
+    "FÍSICO-MATEMÁTICAS Y CIENCIAS DE LA TIERRA": "Físico-Mat.",
+    "HUMANIDADES Y CIENCIAS DE LA CONDUCTA": "Humanidades y C. Conducta",
+    "INGENIERÍAS": "Ingenierías",
+    "INTERDISCIPLINARIA": "Interdisciplinaria",
+    "MEDICINA Y CIENCIAS DE LA SALUD": "Medicina",
+}
+
+
+def _figura_spider(t: pd.Series, anio: int, areas: list[str], niveles: list[str],
+                   generos: list[str], tope: pd.Series, estado: str) -> go.Figure:
+    from plotly.subplots import make_subplots
+    fig = make_subplots(rows=1, cols=len(niveles), specs=[[{"type": "polar"}] * len(niveles)],
+                        subplot_titles=[f"Nivel {n}" for n in niveles],
+                        horizontal_spacing=0.07)
+    etiquetas = [_CORTO.get(a, a.title()) for a in areas]
+    for j, nivel in enumerate(niveles, start=1):
+        for genero, nombre in (("HOMBRE", "Hombres"), ("MUJER", "Mujeres")):
+            if genero not in generos:
+                continue
+            try:
+                v = t.loc[(anio, nivel)].xs(genero, level="GENERO")
+            except KeyError:
+                v = pd.Series(dtype=float)
+            r = [float(v.get(a, 0)) for a in areas]
+            color = config.COLOR_GENERO[genero]
+            fig.add_trace(go.Scatterpolar(
+                r=r + r[:1], theta=etiquetas + etiquetas[:1], name=nombre,
+                legendgroup=genero, showlegend=(j == 1), mode="lines+markers",
+                line=dict(color=color, width=2), marker=dict(size=5),
+                fill="toself", fillcolor=_rgba(color, 0.15),
+                hovertemplate=f"{nombre}<br>%{{theta}}: %{{r:,.0f}}<extra>Nivel {nivel}</extra>"),
+                row=1, col=j)
+        mx = float(tope.get(nivel, 0)) or 1.0
+        fig.update_polars(dict(radialaxis=dict(range=[0, mx * 1.05], tickfont=dict(size=8),
+                                               angle=90, tickangle=90),
+                               angularaxis=dict(tickfont=dict(size=8), rotation=90,
+                                                direction="clockwise")),
+                          row=1, col=j)
+    fig.update_layout(title=dict(text=f"{estado} · {anio}", x=0, font=dict(size=15)),
+                      height=360, margin=dict(l=50, r=50, t=70, b=40),
+                      legend=dict(orientation="h", y=-0.12, x=0.5, xanchor="center"))
+    fig.update_annotations(font_size=12, yshift=18)
+    return fig
+
+
+def _rgba(hex_color: str, a: float) -> str:
+    h = hex_color.lstrip("#")
+    return f"rgba({int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)},{a})"

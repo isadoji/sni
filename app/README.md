@@ -12,9 +12,12 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   botón *Ver todo el país* borra la selección.
   - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,
     nivel, área, región).
-  - Con uno o más estados: KPIs de la selección y evolución por área y por nivel,
-    en paneles Mujeres / Hombres.
-  - Logo *SNI Explorer* en `assets/logo.png` e `assets/icono.png` (favicon y
+  - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
+    nivel × área × género (como el de la página principal del portafolio) con su
+    propio selector de año; la escala radial de cada nivel es fija en todos los
+    años para ese estado. La evolución anual por área y por nivel queda en un
+    desplegable.
+  - Logo *SNII Explorer* en `assets/logo.png` e `assets/icono.png` (favicon y
     barra lateral).
   - El mapa son polígonos en ejes cartesianos (lon, lat) con un punto por estado,
     no un coroplético geo: en Streamlit un coroplético geo no emite selección. La
