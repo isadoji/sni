@@ -29,7 +29,26 @@ _PALETA = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
            "#8c564b", "#e377c2", "#17becf"]
 
 
+_ESTADOS_GEO: set = set()
+_RANGO_FIJO = None
 _METRICAS = ["Investigadores", "% mujeres", "% hombres"]
+def _rango_fijo(df: pd.DataFrame) -> dict[str, tuple[float, float]]:
+    """Escala de color fija para todos los años, para que se vea el cambio.
+
+    Investigadores: 0 al máximo de un estado en un año. Porcentajes: mínimo y
+    máximo de los estados en todos los años, redondeados a múltiplos de 5.
+    """
+    import math
+    d = df
+    n = d.groupby(["AÑO", "ENTIDAD"])["N"].sum()
+    m = d[d["GENERO"] == "MUJER"].groupby(["AÑO", "ENTIDAD"])["N"].sum()
+    n = n[n.index.get_level_values("ENTIDAD").isin(_ESTADOS_GEO)]
+    pm = (100 * m.reindex(n.index).fillna(0) / n)
+    lo, hi = 5 * math.floor(pm.min() / 5), 5 * math.ceil(pm.max() / 5)
+    return {"Investigadores": (0.0, float(n.max())), "% mujeres": (lo, hi),
+            "% hombres": (100 - hi, 100 - lo)}
+
+
 _ESCALA = {"Investigadores": "Blues", "% mujeres": "Greens", "% hombres": "Purples"}
 
 
@@ -42,8 +61,9 @@ class MapaSelector:
     selección en Streamlit, por eso no se usa aquí.
     """
 
-    def __init__(self, repo, dff_base: pd.DataFrame):
+    def __init__(self, repo, dff_base: pd.DataFrame, toda_la_serie: bool = True):
         self.repo = repo
+        self.toda_la_serie = toda_la_serie
         self.charts = ChartBuilder(dff_base, repo.geojson)
         self.formas = self._formas(repo.geojson)
 
@@ -78,8 +98,12 @@ class MapaSelector:
             g["Investigadores"] > 0)).round(1).fillna(0)
         escala = _ESCALA[metrica]
         v = g[metrica].astype(float)
-        vmax = v.max() or 1.0
-        colores = pc.sample_colorscale(escala, list((v / vmax).clip(0, 1) * 0.85 + 0.05))
+        if metrica == "Investigadores" and self.toda_la_serie:
+            vmin, vmax = 0.0, float(v.max()) or 1.0  # suma de años: otra magnitud
+        else:
+            vmin, vmax = _RANGO_FIJO[metrica]
+        colores = pc.sample_colorscale(
+            escala, list(((v - vmin) / (vmax - vmin)).clip(0, 1) * 0.85 + 0.05))
         fig = go.Figure()
         # La selección vive en session_state y se dibuja con selectedpoints.
         for (xs, ys, _), color in zip(self.formas.values(), colores):
@@ -95,7 +119,7 @@ class MapaSelector:
             x=cx, y=cy, mode="markers", text=orden, customdata=custom,
             name="entidades", showlegend=False,
             selectedpoints=[orden.index(n) for n in sel] if sel else None,
-            marker=dict(size=13, color=v, colorscale=escala, cmin=0, cmax=vmax,
+            marker=dict(size=13, color=v, colorscale=escala, cmin=vmin, cmax=vmax,
                         line=dict(color="white", width=1.5),
                         colorbar=dict(title=metrica, thickness=14)),
             selected=dict(marker=dict(color="#d62728", size=18)),
@@ -280,7 +304,11 @@ class DashboardV2(Dashboard):
         yr = (anio_mapa, anio_mapa) if anio_mapa else (years[0], years[-1])
 
         base = self.repo.filter(self._estado(yr, generos, None))
-        sel = MapaSelector(self.repo, base).render()
+        global _ESTADOS_GEO, _RANGO_FIJO
+        if _RANGO_FIJO is None:
+            _ESTADOS_GEO = {f["properties"]["name"] for f in self.repo.geojson["features"]}
+            _RANGO_FIJO = _rango_fijo(self.repo.df)
+        sel = MapaSelector(self.repo, base, anio_mapa is None).render()
 
         dff = self.repo.filter(self._estado(yr, generos, sel)) if sel else base
         charts = ChartBuilder(dff, self.repo.geojson)
