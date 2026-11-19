@@ -6,7 +6,7 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
 
 - **Versión 2 (la que corre en Render desde 2026-11-18)**, `streamlit_app.py` →
   `sni_dashboard/app_v2.py`. Sin filtros en la barra lateral (solo la fuente):
-  el año se elige con **botones sobre el mapa** (*2015–2025* = toda la serie, o un
+  el año se elige con **botones debajo del mapa** (*2015–2025* = toda la serie, o un
   año), siempre con ambos géneros. El **mapa es el selector de entidades**: siempre
   muestra las 32 entidades con el mismo encuadre. Métricas del mapa: investigadores,
   % mujeres, % hombres, con **escala de color fija en los años individuales**
@@ -32,7 +32,7 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
     nivel × área × género (como el de la página principal del portafolio: mismo
     orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones
-    sobre el mapa (una sola selección de año para toda la página). En los años
+    debajo del mapa (una sola selección de año para toda la página). En los años
     individuales la escala radial de cada nivel es fija en todos los años para ese
     estado; en *2015–2025* se suman todos los años con su propia escala. La
     evolución anual por área y por nivel queda en un desplegable.

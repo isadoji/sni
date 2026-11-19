@@ -22,7 +22,7 @@ https://conacyt.mx/sistema-nacional-de-investigadores/archivo-historico/
 
 Explorador *SNI Explorer* en [Streamlit](https://streamlit.io) sobre la serie
 histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): una sola fila de
-botones de año sobre el mapa (controla el mapa y los spider web) y el mapa de México
+botones de año debajo del mapa (controla el mapa y los spider web) y el mapa de México
 como selector de estados, con escala de color fija en los años individuales; sin
 selección muestra KPIs nacionales y las gráficas de evolución, nivel, área y región, y abajo investigadores por 100 000 habitantes por estado (población de CONAPO) junto a % de mujeres y de hombres por estado;
 con uno o varios estados, sus KPIs y un spider web nivel × área × género por estado.

@@ -234,7 +234,7 @@ class DashboardV2(Dashboard):
     TODOS = "2015–2025"
 
     def _anio(self) -> int | None:
-        """Botones de año sobre el mapa (como en el portafolio). None = toda la serie."""
+        """Botones de año debajo del mapa. None = toda la serie."""
         years = list(self.repo.years)
         v = st.segmented_control("Año", options=[self.TODOS, *years],
                                  default=self.TODOS, key="anio_mapa",
@@ -285,10 +285,10 @@ class DashboardV2(Dashboard):
         se vea el crecimiento (igual que en el dashboard del portafolio).
         """
         st.subheader("Spider web: nivel × área × género")
-        # El año es el global (botones sobre el mapa). Con 2015–2025 se suman todos
+        # El año es el global (botones debajo del mapa). Con 2015–2025 se suman todos
         # los años y la escala es la de esa suma, igual que en el mapa.
         st.caption("Investigadores por área de conocimiento y género en cada nivel, en "
-                   "el año elegido sobre el mapa. En los años individuales la escala de "
+                   "el año elegido debajo del mapa. En los años individuales la escala de "
                    "cada nivel es la misma en todos los años para ese estado; en "
                    "2015–2025 se suman todos los años. *Interdisciplinaria* vale 0 "
                    "antes de 2022 (no existía).")
@@ -343,6 +343,9 @@ class DashboardV2(Dashboard):
         generos = list(self.repo.generos)
         kpi_slot = st.container()
         st.subheader("Mapa por entidad federativa")
+        # los botones de año van debajo del mapa, pero el mapa necesita el año:
+        # se reserva su lugar y se dibuja después
+        mapa_slot = st.container()
         anio_mapa = self._anio()
         years = self.repo.years
         yr = (anio_mapa, anio_mapa) if anio_mapa else (years[0], years[-1])
@@ -352,7 +355,8 @@ class DashboardV2(Dashboard):
         if _RANGO_FIJO is None:
             _ESTADOS_GEO = {f["properties"]["name"] for f in self.repo.geojson["features"]}
             _RANGO_FIJO = _rango_fijo(self.repo.df)
-        sel = MapaSelector(self.repo, base, anio_mapa is None).render()
+        with mapa_slot:
+            sel = MapaSelector(self.repo, base, anio_mapa is None).render()
 
         dff = self.repo.filter(self._estado(yr, generos, sel)) if sel else base
         charts = ChartBuilder(dff, self.repo.geojson)
