@@ -247,6 +247,14 @@ class DashboardV2(Dashboard):
             "(https://secihti.mx/snii/archivo-historico-del-snii/). "
             "2022 excluido (archivo oficial no utilizable). Género por título, CVU "
             "y nombre en otros años; áreas homologadas a 8 ejes comparables.")
+        st.sidebar.divider()
+        st.sidebar.markdown(
+            "**Autoras**  \nIsabel Domínguez Jiménez  \nMaría Elena Tejeda Yeomans\n\n"
+            "**Código y metodología**  \n"
+            "[github.com/isadoji/sni](https://github.com/isadoji/sni)\n\n"
+            "**Cómo citar**  \nDomínguez Jiménez, I. y Tejeda Yeomans, M. E. (2026). "
+            "*SNII Explorer: padrón del Sistema Nacional de Investigadoras e "
+            "Investigadores, 2015–2025*. https://sni-explorer.onrender.com")
 
     def _estado(self, yr, generos, estados) -> FilterState:
         r = self.repo
@@ -337,23 +345,6 @@ class DashboardV2(Dashboard):
                 st.plotly_chart(self._evolucion(dff, "NIVEL", self.repo.niveles,
                                                 "Nivel"), use_container_width=True)
         self._tabla(charts, dff)
-        self._pie()
-
-    @staticmethod
-    def _pie() -> None:
-        st.divider()
-        st.markdown(
-            "**Autoras:** Isabel Domínguez Jiménez · María Elena Tejeda Yeomans\n\n"
-            "**Datos:** [Archivo histórico del SNII]"
-            "(https://secihti.mx/snii/archivo-historico-del-snii/) (SECIHTI), padrones "
-            "2015–2025; 2022 excluido porque el archivo oficial no es utilizable. Solo "
-            "se muestran conteos agregados, sin nombres ni datos personales.\n\n"
-            "**Código y metodología:** [github.com/isadoji/sni]"
-            "(https://github.com/isadoji/sni)\n\n"
-            "**Cómo citar:** Domínguez Jiménez, I. y Tejeda Yeomans, M. E. (2026). "
-            "*SNII Explorer: padrón del Sistema Nacional de Investigadoras e "
-            "Investigadores, 2015–2025*. https://sni-explorer.onrender.com")
-        st.caption("Actualizado: noviembre de 2026.")
 
 
 # Mismo orden de ejes que el spider web del portafolio (sni-dashboard.html).
