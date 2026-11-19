@@ -245,8 +245,8 @@ class DashboardV2(Dashboard):
         st.sidebar.caption(
             "Fuente: [Archivo histórico del SNII]"
             "(https://secihti.mx/snii/archivo-historico-del-snii/). "
-            "2022 excluido (archivo oficial no utilizable). Género por título, CVU "
-            "y nombre en otros años; áreas homologadas a 8 ejes comparables.")
+            "Padrones 2015–2025. Género por título, CVU y nombre en otros años;"
+            " áreas homologadas a 8 ejes comparables.")
         st.sidebar.divider()
         st.sidebar.markdown(
             "**Autoras**  \nIsabel Domínguez Jiménez  \nMaría Elena Tejeda Yeomans\n\n"
@@ -291,7 +291,7 @@ class DashboardV2(Dashboard):
                    "el año elegido sobre el mapa. En los años individuales la escala de "
                    "cada nivel es la misma en todos los años para ese estado; en "
                    "2015–2025 se suman todos los años. *Interdisciplinaria* vale 0 "
-                   "antes de 2023 (no existía).")
+                   "antes de 2022 (no existía).")
         df = self.repo.df
         sub = df[df["ENTIDAD"].isin(sel) & df["GENERO"].isin(generos)]
         areas = [a for a in _ORDEN_SPIDER if a in self.repo.areas]

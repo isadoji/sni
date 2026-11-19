@@ -60,8 +60,7 @@ class SidebarController:
         st.sidebar.caption(
             "Fuente: [Archivo histórico del SNII]"
             "(https://secihti.mx/snii/archivo-historico-del-snii/). "
-            "2022 excluido (archivo oficial no utilizable). El género se infiere "
-            "por nombre de pila; las áreas se homologan a 8 ejes comparables en "
+            "El género se asigna por título, CVU y nombre en otros años; las áreas se homologan a 8 ejes comparables en "
             "toda la serie."
         )
         return FilterState(tuple(year_range), areas, niveles, generos,

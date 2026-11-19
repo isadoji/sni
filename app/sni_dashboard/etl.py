@@ -51,8 +51,11 @@ class PadronReader:
 
     def _nivel(self, df: pd.DataFrame, cfg: YearConfig) -> pd.Series:
         nivel = df[cfg.nivel_col].astype(str).str.strip().str.upper()
-        if cfg.emerito_col:                       # 2023: Emérito en columna aparte
-            es_em = df[cfg.emerito_col].astype(str).str.strip().str.upper() == "EMÉRITO"
+        # 2022: "Investigador(a) Nacional Nivel III", "Candidato(a) a Investigador(a) Nacional"
+        largo = nivel.str.extract(r"NIVEL (III|II|I)\b")[0].map({"I": "1", "II": "2", "III": "3"})
+        nivel = largo.where(largo.notna(), nivel.where(~nivel.str.contains("CANDIDATO"), "C"))
+        if cfg.emerito_col:                       # 2022 ("EM") y 2023 ("EMÉRITO"): columna aparte
+            es_em = df[cfg.emerito_col].astype(str).str.strip().str.upper().isin(["EMÉRITO", "EM"])
             nivel = nivel.where(~es_em, "E")
         return nivel.where(nivel.isin(config.ORDEN_NIVELES))
 
@@ -71,7 +74,8 @@ class PadronReader:
                              "pila": pila.replace("", None), "sexo_titulo": tit})
 
     def read(self, cfg: YearConfig) -> pd.DataFrame:
-        df = pd.read_excel(self.datasets_dir / cfg.file, skiprows=cfg.skiprows)
+        df = pd.read_excel(self.datasets_dir / cfg.file, skiprows=cfg.skiprows,
+                           sheet_name=cfg.sheet)
         entidad = self.entidad.normalize_series(df[cfg.estado_col])
         out = pd.DataFrame({
             "AÑO": cfg.year,
@@ -146,7 +150,7 @@ class DatasetBuilder:
 
 def generos_por_anio(verbose: bool = False) -> dict[int, pd.Series]:
     """{año: Serie GENERO (MUJER/HOMBRE)} indexada por la fila de
-    ``pd.read_excel(datasets/<cfg.file>, skiprows=cfg.skiprows)``. Lee todos los años
+    ``pd.read_excel(datasets/<cfg.file>, skiprows=cfg.skiprows, sheet_name=cfg.sheet)``. Lee todos los años
     porque el sexo de un año se apoya en el CVU y el nombre de los demás."""
     b = DatasetBuilder()
     b.build(verbose=verbose)

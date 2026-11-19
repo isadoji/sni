@@ -75,13 +75,13 @@ class YearConfig:
     titulo_col: str | None = None          # NOBILIS / GRADO ACADÉMICO (DR., DRA., ...)
     cvu_col: str | None = None
     apellido_cols: tuple[str, ...] = ()    # solo en modo 'dado' (apellidos en columnas aparte)
+    sheet: str | int = 0                   # hoja del .xlsx
 
     @property
     def path_name(self) -> str:
         return self.file
 
 
-# 2022 se excluye: el archivo oficial no es utilizable.
 YEAR_CONFIGS: list[YearConfig] = [
     YearConfig(2015, "SNI2015.xlsx", 4, "NOMBRE", "dado", "NIVEL", "AREA", "ESTADO",
                titulo_col="NOBILIS", apellido_cols=("PRIEMR APELLIDO", "SEGUNDO APELLIDO")),
@@ -98,6 +98,11 @@ YEAR_CONFIGS: list[YearConfig] = [
     YearConfig(2021, "SNI2021.xlsx", 0, "NOMBRE DEL INVESTIGADOR(A)", "apellidos_nombre",
                "CATEGORÍA", "ÁREA DEL CONOCIMIENTO", "ENTIDAD FEDERATIVA",
                titulo_col="NOBILIS", cvu_col="CVU"),
+    # 2022: el padrón está en la hoja "2022"; "Hoja1"/"Hoja2" son una tabla dinámica de
+    # una sola institución (CICESE). Sin título; nivel como texto largo; eméritos "EM".
+    YearConfig(2022, "SNI2022.xlsx", 0, "NOMBRE", "apellidos_nombre", "NIVEL",
+               "ÁREA DEL CONOCIMIENTO", "ENTIDAD FEDERATIVA DE ADSCRIPCIÓN",
+               emerito_col="EMÉRITO", cvu_col="CVU", sheet="2022"),
     YearConfig(2023, "SNI2023_official.xlsx", 0, "NOMBRE DEL INVESTIGADOR",
                "apellidos_nombre", "NIVEL", "ÁREA DEL CONOCIMIENTO",
                "ENTIDAD FEDERATIVA DE ADSCRIPCIÓN", emerito_col="EMÉRITO",

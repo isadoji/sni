@@ -108,7 +108,7 @@ class SexoResolver:
 
 
 class AreaClassifier:
-    """Homologa la taxonomía de áreas (7 ejes hasta 2022, 9 desde 2023) a 8 ejes."""
+    """Homologa la taxonomía de áreas (7 ejes hasta 2021, 9 desde 2022) a 8 ejes."""
 
     CANONICAS = config.AREAS_CANONICAS
 
