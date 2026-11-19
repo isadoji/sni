@@ -17,16 +17,18 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   *2015–2025* (suma de todos los años) la escala va de 0 al máximo de esa vista. Clic en el punto de un estado lo agrega y otro clic lo quita;
   recuadro o lazo agregan varios; el botón *Ver todo el país* borra la selección. La
   selección se conserva al cambiar de año o de métrica.
-  - Sin selección: KPIs nacionales y las gráficas de evolución por año y género,
-    nivel y área, y abajo, a todo lo ancho, **% de mujeres y de hombres por estado**
-    (proporción dentro del SNII de cada estado, suman 100 %, ordenada de mayor a menor
-    % de mujeres, línea en 50 %; el tooltip da los conteos). Compara la brecha sin
-    importar el tamaño del estado; en *2015–2025* es la proporción de la suma. Sin
-    *Sin dato / Extranjero*. Debajo, **investigadores por cada 10 000 habitantes** por
-    estado (ambos sexos, de mayor a menor), con la población de CONAPO del mismo año; en
-    *2015–2025* es el promedio de las tasas anuales (sumar personas contaría a la misma
-    una vez por año). 2025: CDMX 15.2, Morelos 5.8 … Guerrero 1.0, Chiapas 1.0.
-    La v1 conserva la gráfica por región.
+  - Sin selección: KPIs nacionales y las 4 gráficas de la v1 (evolución por año y
+    género, nivel, área, región). Abajo, lado a lado:
+    - **investigadores por cada 10 000 habitantes** por estado (ambos sexos, de mayor a
+      menor), con la población de CONAPO del mismo año; en *2015–2025* es el promedio
+      de las tasas anuales (sumar personas contaría a la misma una vez por año).
+      2025: CDMX 15.2, Morelos 5.8 … Guerrero 1.0, Chiapas 1.0;
+    - **% de mujeres y de hombres por estado** (proporción dentro del SNII de cada
+      estado, suman 100 %, de mayor a menor % de mujeres, línea en 50 %; el tooltip da
+      los conteos). Compara la brecha sin importar el tamaño del estado; en
+      *2015–2025* es la proporción de la suma.
+
+    Las dos dejan fuera *Sin dato / Extranjero*.
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
     nivel × área × género (como el de la página principal del portafolio: mismo
     orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones

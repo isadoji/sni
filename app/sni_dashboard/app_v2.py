@@ -308,8 +308,8 @@ class DashboardV2(Dashboard):
                             use_container_width=True, key=f"spider_{estado}")
 
     def _desgloses(self, charts: ChartBuilder) -> None:
-        """Como la v1, pero en vez de la gráfica por región: % de mujeres y de hombres
-        dentro de cada estado, a todo lo ancho (son 32 barras)."""
+        """Las 4 gráficas de la v1 (evolución, nivel, área, región) y abajo, lado a lado,
+        investigadores por 10 000 habitantes y % de mujeres y de hombres por estado."""
         izq, der = st.columns(2)
         with izq:
             st.subheader("Evolución por año y género")
@@ -319,16 +319,21 @@ class DashboardV2(Dashboard):
         with der:
             st.subheader("Por área de conocimiento")
             st.plotly_chart(charts.por_area(), use_container_width=True)
-        st.subheader("% de mujeres y de hombres por estado")
-        st.caption("Proporción dentro del SNII de cada estado, ordenada de mayor a menor % de "
-                   "mujeres: compara la brecha sin importar cuántos investigadores tenga el "
-                   "estado. En *2015–2025* es la proporción de la suma de todos los años.")
-        st.plotly_chart(charts.pct_genero_por_estado(), use_container_width=True)
-        st.subheader("Investigadores por cada 10 000 habitantes, por estado")
-        st.caption("Hombres y mujeres juntos, sobre la población del estado en el mismo año "
-                   "(proyecciones de población de CONAPO). En *2015–2025* es el promedio de "
-                   "las tasas anuales.")
-        st.plotly_chart(charts.por_10mil_habitantes(), use_container_width=True)
+            st.subheader("Por región")
+            st.plotly_chart(charts.por_region(), use_container_width=True)
+        izq, der = st.columns(2)
+        with izq:
+            st.subheader("Investigadores por 10 000 habitantes")
+            st.caption("Hombres y mujeres juntos, sobre la población del estado en el mismo "
+                       "año (proyecciones de población de CONAPO). En *2015–2025* es el "
+                       "promedio de las tasas anuales.")
+            st.plotly_chart(charts.por_10mil_habitantes(), use_container_width=True)
+        with der:
+            st.subheader("% de mujeres y de hombres por estado")
+            st.caption("Proporción dentro del SNII de cada estado, ordenada de mayor a menor % "
+                       "de mujeres: compara la brecha sin importar el tamaño del estado. En "
+                       "*2015–2025* es la proporción de la suma de todos los años.")
+            st.plotly_chart(charts.pct_genero_por_estado(), use_container_width=True)
 
     def run(self) -> None:
         st.set_page_config(page_title="SNI Explorer · padrón SNI/SNII",

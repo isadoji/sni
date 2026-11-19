@@ -24,7 +24,7 @@ Explorador *SNI Explorer* en [Streamlit](https://streamlit.io) sobre la serie
 histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): una sola fila de
 botones de año sobre el mapa (controla el mapa y los spider web) y el mapa de México
 como selector de estados, con escala de color fija en los años individuales; sin
-selección muestra KPIs nacionales y las gráficas de evolución, nivel, área, % de mujeres y de hombres por estado (de mayor a menor % de mujeres) e investigadores por 10 000 habitantes por estado (población de CONAPO);
+selección muestra KPIs nacionales y las gráficas de evolución, nivel, área y región, y abajo investigadores por 10 000 habitantes por estado (población de CONAPO) junto a % de mujeres y de hombres por estado;
 con uno o varios estados, sus KPIs y un spider web nivel × área × género por estado.
 La barra lateral muestra la fuente, las autoras (Isabel Domínguez Jiménez y María
 Elena Tejeda Yeomans), el enlace al código y cómo citar. La **versión 1** (filtros
