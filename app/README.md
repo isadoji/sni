@@ -20,10 +20,12 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,
     nivel, área, región).
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
-    nivel × área × género (como el de la página principal del portafolio: mismos
-    botones de año 2015 … 2025, mismo orden de ejes y etiquetas), en paneles 3 × 2; la escala radial de cada nivel es fija en todos los
-    años para ese estado. La evolución anual por área y por nivel queda en un
-    desplegable.
+    nivel × área × género (como el de la página principal del portafolio: mismo
+    orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones
+    sobre el mapa (una sola selección de año para toda la página). En los años
+    individuales la escala radial de cada nivel es fija en todos los años para ese
+    estado; en *2015–2025* se suman todos los años con su propia escala. La
+    evolución anual por área y por nivel queda en un desplegable.
   - Logo *SNII Explorer* en `assets/logo.png` e `assets/icono.png` (favicon y
     barra lateral).
   - El mapa son polígonos en ejes cartesianos (lon, lat) con un punto por estado,

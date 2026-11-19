@@ -277,17 +277,13 @@ class DashboardV2(Dashboard):
         se vea el crecimiento (igual que en el dashboard del portafolio).
         """
         st.subheader("Spider web: nivel × área × género")
-        anios = list(self.repo.years)
-        inicial = anio_mapa or anios[-1]
-        # la clave depende del año del mapa: al cambiarlo, el spider lo sigue
-        anio = st.segmented_control("Año del spider web", options=anios,
-                                    default=inicial, key=f"anio_spider_{anio_mapa}",
-                                    label_visibility="collapsed")
-        if anio is None:  # se des-seleccionó el botón activo
-            anio = inicial
-        st.caption("Investigadores por área de conocimiento y género en cada nivel. "
-                   "La escala de cada nivel es la misma en todos los años para ese "
-                   "estado. *Interdisciplinaria* vale 0 antes de 2023 (no existía).")
+        # El año es el global (botones sobre el mapa). Con 2015–2025 se suman todos
+        # los años y la escala es la de esa suma, igual que en el mapa.
+        st.caption("Investigadores por área de conocimiento y género en cada nivel, en "
+                   "el año elegido sobre el mapa. En los años individuales la escala de "
+                   "cada nivel es la misma en todos los años para ese estado; en "
+                   "2015–2025 se suman todos los años. *Interdisciplinaria* vale 0 "
+                   "antes de 2023 (no existía).")
         df = self.repo.df
         sub = df[df["ENTIDAD"].isin(sel) & df["GENERO"].isin(generos)]
         areas = [a for a in _ORDEN_SPIDER if a in self.repo.areas]
@@ -295,9 +291,12 @@ class DashboardV2(Dashboard):
         for estado in sel:
             d = sub[sub["ENTIDAD"] == estado]
             t = d.groupby(["AÑO", "NIVEL", "AREA", "GENERO"])["N"].sum()
+            if anio_mapa is None:
+                t = pd.concat({0: t.groupby(level=["NIVEL", "AREA", "GENERO"]).sum()},
+                              names=["AÑO"])
             tope = t.groupby(level="NIVEL").max()
-            st.plotly_chart(_figura_spider(t, anio, areas, niveles, generos, tope,
-                                           estado),
+            st.plotly_chart(_figura_spider(t, anio_mapa or 0, areas, niveles, generos,
+                                           tope, estado),
                             use_container_width=True, key=f"spider_{estado}")
 
     def run(self) -> None:
@@ -394,7 +393,7 @@ def _figura_spider(t: pd.Series, anio: int, areas: list[str], niveles: list[str]
                                                ),
                                angularaxis=dict(tickfont=dict(size=10))),
                           row=pos[j][0] + 1, col=pos[j][1] + 1)
-    fig.update_layout(title=dict(text=f"{estado} · {anio}", x=0, font=dict(size=15)),
+    fig.update_layout(title=dict(text=f"{estado} · {anio or '2015–2025 (suma)'}", x=0, font=dict(size=15)),
                       height=330 * nfil + 60, margin=dict(l=70, r=70, t=80, b=30),
                       legend=dict(x=0.84, y=0.25, xanchor="center", yanchor="middle",
                                   font=dict(size=13)))
