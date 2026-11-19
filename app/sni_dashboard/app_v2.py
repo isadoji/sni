@@ -222,15 +222,18 @@ class DashboardV2(Dashboard):
         se vea el crecimiento (igual que en el dashboard del portafolio).
         """
         st.subheader("Spider web: nivel × área × género")
-        anios = [a for a in self.repo.years if yr[0] <= a <= yr[1]]
-        anio = (st.select_slider("Año", options=anios, value=anios[-1],
-                                 key="anio_spider") if len(anios) > 1 else anios[0])
+        anios = list(self.repo.years)
+        anio = st.segmented_control("Año del spider web", options=anios,
+                                    default=anios[-1], key="anio_spider",
+                                    label_visibility="collapsed")
+        if anio is None:  # se des-seleccionó el botón activo
+            anio = anios[-1]
         st.caption("Investigadores por área de conocimiento y género en cada nivel. "
                    "La escala de cada nivel es la misma en todos los años para ese "
                    "estado. *Interdisciplinaria* vale 0 antes de 2023 (no existía).")
         df = self.repo.df
         sub = df[df["ENTIDAD"].isin(sel) & df["GENERO"].isin(generos)]
-        areas = sorted(self.repo.areas)
+        areas = [a for a in _ORDEN_SPIDER if a in self.repo.areas]
         niveles = self.repo.niveles
         for estado in sel:
             d = sub[sub["ENTIDAD"] == estado]
@@ -274,12 +277,20 @@ class DashboardV2(Dashboard):
         self._tabla(charts, dff)
 
 
+# Mismo orden de ejes que el spider web del portafolio (sni-dashboard.html).
+_ORDEN_SPIDER = [
+    "FÍSICO-MATEMÁTICAS Y CIENCIAS DE LA TIERRA", "BIOLOGÍA Y QUÍMICA",
+    "MEDICINA Y CIENCIAS DE LA SALUD", "HUMANIDADES Y CIENCIAS DE LA CONDUCTA",
+    "CIENCIAS SOCIALES", "BIOTECNOLOGÍA Y CIENCIAS AGROPECUARIAS", "INGENIERÍAS",
+    "INTERDISCIPLINARIA",
+]
+
 _CORTO = {
     "BIOLOGÍA Y QUÍMICA": "Biología y Química",
     "BIOTECNOLOGÍA Y CIENCIAS AGROPECUARIAS": "Biotec. y Agropec.",
-    "CIENCIAS SOCIALES": "Sociales",
+    "CIENCIAS SOCIALES": "C. Sociales",
     "FÍSICO-MATEMÁTICAS Y CIENCIAS DE LA TIERRA": "Físico-Mat.",
-    "HUMANIDADES Y CIENCIAS DE LA CONDUCTA": "Humanidades y C. Conducta",
+    "HUMANIDADES Y CIENCIAS DE LA CONDUCTA": "Human. y C. Conducta",
     "INGENIERÍAS": "Ingenierías",
     "INTERDISCIPLINARIA": "Interdisciplinaria",
     "MEDICINA Y CIENCIAS DE LA SALUD": "Medicina",
@@ -289,9 +300,14 @@ _CORTO = {
 def _figura_spider(t: pd.Series, anio: int, areas: list[str], niveles: list[str],
                    generos: list[str], tope: pd.Series, estado: str) -> go.Figure:
     from plotly.subplots import make_subplots
-    fig = make_subplots(rows=1, cols=len(niveles), specs=[[{"type": "polar"}] * len(niveles)],
+    ncol = 3
+    nfil = -(-len(niveles) // ncol)
+    specs = [[{"type": "polar"} if f * ncol + c < len(niveles) else None
+              for c in range(ncol)] for f in range(nfil)]
+    fig = make_subplots(rows=nfil, cols=ncol, specs=specs,
                         subplot_titles=[f"Nivel {n}" for n in niveles],
-                        horizontal_spacing=0.07)
+                        horizontal_spacing=0.16, vertical_spacing=0.16)
+    pos = {j: divmod(j - 1, ncol) for j in range(1, len(niveles) + 1)}
     etiquetas = [_CORTO.get(a, a.title()) for a in areas]
     for j, nivel in enumerate(niveles, start=1):
         for genero, nombre in (("HOMBRE", "Hombres"), ("MUJER", "Mujeres")):
@@ -309,16 +325,16 @@ def _figura_spider(t: pd.Series, anio: int, areas: list[str], niveles: list[str]
                 line=dict(color=color, width=2), marker=dict(size=5),
                 fill="toself", fillcolor=_rgba(color, 0.15),
                 hovertemplate=f"{nombre}<br>%{{theta}}: %{{r:,.0f}}<extra>Nivel {nivel}</extra>"),
-                row=1, col=j)
+                row=pos[j][0] + 1, col=pos[j][1] + 1)
         mx = float(tope.get(nivel, 0)) or 1.0
         fig.update_polars(dict(radialaxis=dict(range=[0, mx * 1.05], tickfont=dict(size=8),
-                                               angle=90, tickangle=90),
-                               angularaxis=dict(tickfont=dict(size=8), rotation=90,
-                                                direction="clockwise")),
-                          row=1, col=j)
+                                               ),
+                               angularaxis=dict(tickfont=dict(size=10))),
+                          row=pos[j][0] + 1, col=pos[j][1] + 1)
     fig.update_layout(title=dict(text=f"{estado} · {anio}", x=0, font=dict(size=15)),
-                      height=360, margin=dict(l=50, r=50, t=70, b=40),
-                      legend=dict(orientation="h", y=-0.12, x=0.5, xanchor="center"))
+                      height=330 * nfil + 60, margin=dict(l=70, r=70, t=80, b=30),
+                      legend=dict(x=0.84, y=0.25, xanchor="center", yanchor="middle",
+                                  font=dict(size=13)))
     fig.update_annotations(font_size=12, yshift=18)
     return fig
 
