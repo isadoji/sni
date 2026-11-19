@@ -10,10 +10,11 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   año), siempre con ambos géneros. El **mapa es el selector de entidades**: siempre
   muestra las 32 entidades con el mismo encuadre. Métricas del mapa: investigadores,
   % mujeres, % hombres, con **escala de color fija en los años individuales**
-  para que se vea el cambio: de 0 al máximo de un estado en cualquier año
-  individual (investigadores 14 312, Ciudad de México 2025; % mujeres 46.3,
-  Tlaxcala 2020; % hombres 74.1, Coahuila 2015). En *2015–2025* (suma de todos los
-  años) la escala va de 0 al máximo de esa vista. Clic en el punto de un estado lo agrega y otro clic lo quita;
+  para que se vea el cambio: investigadores de 0 a 3 000 (máximo de los estados sin
+  la Ciudad de México, Jalisco 2 756, redondeado a 500; la CDMX, hasta 14 312, queda
+  en el color más oscuro, «3,000+»); % mujeres 25–46.3 y % hombres 50–74.1 (mínimo
+  redondeado a 5 y máximo de los estados en todos los años individuales). En
+  *2015–2025* (suma de todos los años) la escala va de 0 al máximo de esa vista. Clic en el punto de un estado lo agrega y otro clic lo quita;
   recuadro o lazo agregan varios; el botón *Ver todo el país* borra la selección. La
   selección se conserva al cambiar de año o de métrica.
   - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,

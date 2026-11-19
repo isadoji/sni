@@ -32,19 +32,26 @@ _PALETA = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
 _ESTADOS_GEO: set = set()
 _RANGO_FIJO = None
 _METRICAS = ["Investigadores", "% mujeres", "% hombres"]
-def _rango_fijo(df: pd.DataFrame) -> dict[str, float]:
-    """Máximo de cada métrica entre los estados en todos los años individuales.
+def _rango_fijo(df: pd.DataFrame) -> dict[str, tuple[float, float]]:
+    """Escala de color fija de los años individuales, para que se vea el cambio.
 
-    Con él se fija la escala de color (0 a ese máximo) de los años individuales,
-    para que al cambiar de año se vea el cambio.
+    Investigadores: de 0 al máximo de los estados sin contar la Ciudad de México
+    (que tiene ~5 veces más), redondeado arriba a 500; la CDMX queda en el color
+    más oscuro. Porcentajes: del mínimo (redondeado abajo a 5) al máximo de los
+    estados en todos los años individuales.
     """
+    import math
     d = df
     n = d.groupby(["AÑO", "ENTIDAD"])["N"].sum()
     m = d[d["GENERO"] == "MUJER"].groupby(["AÑO", "ENTIDAD"])["N"].sum()
     n = n[n.index.get_level_values("ENTIDAD").isin(_ESTADOS_GEO)]
     pm = (100 * m.reindex(n.index).fillna(0) / n).round(1)
-    return {"Investigadores": float(n.max()), "% mujeres": float(pm.max()),
-            "% hombres": float((100 - pm).max())}
+    ph = 100 - pm
+    maximos = n.groupby(level="ENTIDAD").max().sort_values()
+    tope = 500 * math.ceil(maximos.iloc[-2] / 500)
+    return {"Investigadores": (0.0, float(tope)),
+            "% mujeres": (5 * math.floor(pm.min() / 5), float(pm.max())),
+            "% hombres": (5 * math.floor(ph.min() / 5), float(ph.max()))}
 
 
 _ESCALA = {"Investigadores": "Blues", "% mujeres": "Greens", "% hombres": "Purples"}
@@ -98,8 +105,9 @@ class MapaSelector:
         v = g[metrica].astype(float)
         if self.toda_la_serie:  # suma de años: escala propia, de 0 a su máximo
             vmin, vmax = 0.0, float(v.max()) or 1.0
-        else:  # años individuales: 0 al máximo de todos los años individuales
-            vmin, vmax = 0.0, _RANGO_FIJO[metrica]
+        else:  # años individuales: escala fija (ver _rango_fijo)
+            vmin, vmax = _RANGO_FIJO[metrica]
+        satura = metrica == "Investigadores" and not self.toda_la_serie
         colores = pc.sample_colorscale(
             escala, list(((v - vmin) / (vmax - vmin)).clip(0, 1) * 0.85 + 0.05))
         fig = go.Figure()
@@ -119,7 +127,10 @@ class MapaSelector:
             selectedpoints=[orden.index(n) for n in sel] if sel else None,
             marker=dict(size=13, color=v, colorscale=escala, cmin=vmin, cmax=vmax,
                         line=dict(color="white", width=1.5),
-                        colorbar=dict(title=metrica, thickness=14)),
+                        colorbar=dict(title=metrica, thickness=14, **(
+                            dict(tickvals=[0, 1000, 2000, vmax],
+                                 ticktext=["0", "1,000", "2,000", f"{vmax:,.0f}+"])
+                            if satura else {}))),
             selected=dict(marker=dict(color="#d62728", size=18)),
             unselected=dict(marker=dict(opacity=0.35)),
             hovertemplate=("<b>%{text}</b><br>Investigadores %{customdata[0]:,}"
