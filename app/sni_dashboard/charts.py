@@ -108,25 +108,40 @@ class ChartBuilder:
         fig.update_layout(height=380, margin=dict(t=10))
         return fig
 
-    CENTRO_SIN_CDMX = "Centrosur sin CDMX"
-
-    def por_region(self, centro_sin_cdmx: bool = False) -> go.Figure:
-        """Investigadores por región y género. Con ``centro_sin_cdmx`` agrega, después de
-        Centrosur, una barra de referencia con Centrosur sin la Ciudad de México (Estado de
-        México y Morelos), que ya están contados en Centrosur: no se suma al total."""
+    def por_region(self) -> go.Figure:
         d = self.dff.groupby(["REGION", "GENERO"])["N"].sum().reset_index()
-        orden = list(config.ORDEN_REGIONES)
-        if centro_sin_cdmx:
-            c = self.dff[(self.dff["REGION"] == "Centrosur")
-                         & (self.dff["ENTIDAD"] != "Ciudad de México")]
-            c = c.groupby("GENERO")["N"].sum().reset_index().assign(REGION=self.CENTRO_SIN_CDMX)
-            d = pd.concat([d, c], ignore_index=True)
-            orden.insert(orden.index("Centrosur") + 1, self.CENTRO_SIN_CDMX)
-        d["REGION"] = pd.Categorical(d["REGION"], orden, ordered=True)
+        d["REGION"] = pd.Categorical(d["REGION"], config.ORDEN_REGIONES, ordered=True)
         fig = px.bar(d.sort_values("REGION"), x="N", y="REGION", color="GENERO",
                      orientation="h", barmode="stack", color_discrete_map=self._COLOR,
                      labels={"N": "Investigadores", "REGION": ""})
         fig.update_layout(height=340, margin=dict(t=10))
+        return fig
+
+    def pct_genero_por_estado(self) -> go.Figure:
+        """% de mujeres y de hombres dentro del SNII de cada estado (suman 100 %), ordenado
+        de mayor a menor % de mujeres. Al ser una proporción interna, compara la brecha entre
+        estados sin importar su tamaño. Sin *Sin dato / Extranjero*."""
+        d = self.dff[self.dff["ENTIDAD"] != config.SIN_DATO]
+        t = d.groupby(["ENTIDAD", "GENERO"])["N"].sum().unstack(fill_value=0)
+        t = t.reindex(columns=["MUJER", "HOMBRE"], fill_value=0)
+        t = t[t.sum(axis=1) > 0]
+        total = t.sum(axis=1)
+        pct = t.div(total, axis=0) * 100
+        orden = pct["MUJER"].sort_values(ascending=False).index.tolist()
+        fig = go.Figure()
+        for g in ["MUJER", "HOMBRE"]:
+            fig.add_bar(y=orden, x=pct.loc[orden, g], orientation="h", name=g,
+                        marker_color=self._COLOR[g], marker_line_width=0,
+                        customdata=list(zip(t.loc[orden, g], total.loc[orden])),
+                        hovertemplate="%{y}<br>" + g.capitalize() + "s: %{x:.1f} %"
+                                      " (%{customdata[0]:,} de %{customdata[1]:,})<extra></extra>")
+        fig.add_vline(x=50, line_dash="dash", line_color="gray")
+        fig.update_layout(barmode="stack", height=22 * len(orden) + 80, margin=dict(t=10),
+                          yaxis=dict(autorange="reversed"),
+                          xaxis=dict(range=[0, 100], ticksuffix=" %",
+                                     title="% del SNII del estado"),
+                          legend=dict(orientation="h", y=1.02, yanchor="bottom", x=0,
+                                      traceorder="normal"))
         return fig
 
     def tabla(self) -> pd.DataFrame:

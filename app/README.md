@@ -18,9 +18,11 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   recuadro o lazo agregan varios; el botón *Ver todo el país* borra la selección. La
   selección se conserva al cambiar de año o de métrica.
   - Sin selección: KPIs nacionales y las gráficas de evolución por año y género,
-    nivel, área y región. La de región agrega, junto a Centrosur, una barra de
-    referencia *Centrosur sin CDMX* (Estado de México y Morelos): la Ciudad de México
-    es la mayoría de esa región; esa barra no se suma al total.
+    nivel y área, y abajo, a todo lo ancho, **% de mujeres y de hombres por estado**
+    (proporción dentro del SNII de cada estado, suman 100 %, ordenada de mayor a menor
+    % de mujeres, línea en 50 %; el tooltip da los conteos). Compara la brecha sin
+    importar el tamaño del estado; en *2015–2025* es la proporción de la suma. Sin
+    *Sin dato / Extranjero*. La v1 conserva la gráfica por región.
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
     nivel × área × género (como el de la página principal del portafolio: mismo
     orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones
