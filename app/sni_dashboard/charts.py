@@ -144,6 +144,31 @@ class ChartBuilder:
                                       traceorder="normal"))
         return fig
 
+    def por_10mil_habitantes(self) -> go.Figure:
+        """Investigadores del SNII (ambos sexos) por cada 10 000 habitantes del estado,
+        de mayor a menor. Población de CONAPO del mismo año (``config.POBLACION_CSV``);
+        con varios años es el promedio de las tasas anuales (no la suma de personas,
+        que contaría a la misma persona una vez por año)."""
+        d = self.dff[self.dff["ENTIDAD"] != config.SIN_DATO]
+        n = d.groupby(["ENTIDAD", "AÑO"])["N"].sum().reset_index()
+        pob = pd.read_csv(config.POBLACION_CSV)
+        n = n.merge(pob, on=["ENTIDAD", "AÑO"], how="inner")
+        n["TASA"] = n["N"] / n["POB"] * 1e4
+        t = n.groupby("ENTIDAD").agg(TASA=("TASA", "mean"), N=("N", "mean"),
+                                     POB=("POB", "mean")).sort_values("TASA", ascending=False)
+        anios = sorted(n["AÑO"].unique())
+        nota = (f"promedio anual {anios[0]}–{anios[-1]}" if len(anios) > 1 else str(anios[0]))
+        fig = go.Figure(go.Bar(
+            y=t.index, x=t["TASA"], orientation="h", marker_color="#4a6fa5",
+            marker_line_width=0, customdata=list(zip(t["N"], t["POB"])),
+            hovertemplate="%{y}: %{x:.2f} por 10 000 hab.<br>" + nota +
+                          ": %{customdata[0]:,.0f} investigadores, "
+                          "%{customdata[1]:,.0f} habitantes<extra></extra>"))
+        fig.update_layout(height=22 * len(t) + 80, margin=dict(t=35),
+                          yaxis=dict(autorange="reversed"),
+                          xaxis=dict(title="Investigadores por 10 000 habitantes"))
+        return fig
+
     def tabla(self) -> pd.DataFrame:
         return (self.dff.pivot_table(
             index=["AÑO", "ENTIDAD", "REGION", "AREA", "NIVEL"],

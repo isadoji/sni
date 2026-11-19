@@ -5,3 +5,4 @@ __pycache__/
 venv/
 testenv/
 .DS_Store
+datasets/pobproy_quinq1.csv

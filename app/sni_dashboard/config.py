@@ -10,6 +10,7 @@ DATASETS_DIR = REPO_DIR / "datasets"                       # padrones .xlsx (sol
 DATA_DIR = APP_DIR / "data"                                # artefactos de la app
 TIDY_CSV = DATA_DIR / "sni_tidy.csv"
 GEOJSON = DATA_DIR / "mexico_estados.geojson"
+POBLACION_CSV = DATA_DIR / "poblacion_entidad.csv"   # CONAPO, build_poblacion.py
 MUJERES_CSV = DATASETS_DIR / "mujeres.csv"
 
 SIN_DATO = "Sin dato / Extranjero"

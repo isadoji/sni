@@ -22,7 +22,11 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
     (proporción dentro del SNII de cada estado, suman 100 %, ordenada de mayor a menor
     % de mujeres, línea en 50 %; el tooltip da los conteos). Compara la brecha sin
     importar el tamaño del estado; en *2015–2025* es la proporción de la suma. Sin
-    *Sin dato / Extranjero*. La v1 conserva la gráfica por región.
+    *Sin dato / Extranjero*. Debajo, **investigadores por cada 10 000 habitantes** por
+    estado (ambos sexos, de mayor a menor), con la población de CONAPO del mismo año; en
+    *2015–2025* es el promedio de las tasas anuales (sumar personas contaría a la misma
+    una vez por año). 2025: CDMX 15.2, Morelos 5.8 … Guerrero 1.0, Chiapas 1.0.
+    La v1 conserva la gráfica por región.
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
     nivel × área × género (como el de la página principal del portafolio: mismo
     orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones
@@ -55,10 +59,12 @@ app/
 ├── streamlit_app_v1.py       # entrada v1 (respaldo): Dashboard().run()
 ├── assets/                   # logo.png, icono.png (SNI Explorer)
 ├── build_dataset.py          # CLI del ETL -> data/sni_tidy.csv
+├── build_poblacion.py        # CONAPO -> data/poblacion_entidad.csv
 ├── requirements.txt
 ├── .streamlit/config.toml
 ├── data/
 │   ├── sni_tidy.csv          # generado por build_dataset.py (se versiona)
+│   ├── poblacion_entidad.csv # generado por build_poblacion.py (se versiona)
 │   └── mexico_estados.geojson
 └── sni_dashboard/
     ├── config.py             # rutas, catálogos, YearConfig por año
@@ -105,6 +111,13 @@ Start `streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0
 volver a correr el ETL.
 
 ## Notas de datos
+
+- **Población** (2026-11-19): `data/poblacion_entidad.csv` (entidad × año 2015–2025,
+  352 filas) sale de `build_poblacion.py`, que suma municipios y sexos de las
+  proyecciones municipales de CONAPO `../datasets/pobproy_quinq1.csv` (1990–2040,
+  2 475 municipios; no se versiona, 36 MB) y homologa *Coahuila de Zaragoza*,
+  *Michoacán de Ocampo* y *Veracruz de Ignacio de la Llave*. Total nacional 2025:
+  133 367 428.
 
 - **2022** (incluido desde 2026-11-19): `SNI2022.xlsx` tiene tres hojas; `Hoja1` y
   `Hoja2` son una tabla dinámica de una sola institución (CICESE, ~257 registros) y el

@@ -324,6 +324,11 @@ class DashboardV2(Dashboard):
                    "mujeres: compara la brecha sin importar cuántos investigadores tenga el "
                    "estado. En *2015–2025* es la proporción de la suma de todos los años.")
         st.plotly_chart(charts.pct_genero_por_estado(), use_container_width=True)
+        st.subheader("Investigadores por cada 10 000 habitantes, por estado")
+        st.caption("Hombres y mujeres juntos, sobre la población del estado en el mismo año "
+                   "(proyecciones de población de CONAPO). En *2015–2025* es el promedio de "
+                   "las tasas anuales.")
+        st.plotly_chart(charts.por_10mil_habitantes(), use_container_width=True)
 
     def run(self) -> None:
         st.set_page_config(page_title="SNI Explorer · padrón SNI/SNII",
