@@ -21,8 +21,8 @@ https://conacyt.mx/sistema-nacional-de-investigadores/archivo-historico/
 ## App interactiva (`app/`)
 
 Explorador *SNI Explorer* en [Streamlit](https://streamlit.io) sobre la serie
-histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): filtros de año y
-género, y el mapa de México como selector de estados; sin selección muestra KPIs
+histórica 2015-2025. **Versión 2** (en Render desde 2026-11-18): botones de año
+sobre el mapa y el mapa de México como selector de estados; sin selección muestra KPIs
 nacionales y las gráficas de evolución, nivel, área y región; con uno o varios
 estados, sus KPIs y un spider web nivel × área × género por estado. La **versión 1** (filtros
 por año, área, nivel, género, región y entidad) queda de respaldo en

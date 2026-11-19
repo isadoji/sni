@@ -29,6 +29,10 @@ _PALETA = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
            "#8c564b", "#e377c2", "#17becf"]
 
 
+_METRICAS = ["Investigadores", "% mujeres", "% hombres"]
+_ESCALA = {"Investigadores": "Blues", "% mujeres": "Greens", "% hombres": "Purples"}
+
+
 class MapaSelector:
     """Mapa fijo de las 32 entidades que devuelve los estados seleccionados.
 
@@ -65,17 +69,19 @@ class MapaSelector:
         import json
         return self._formas_cache(json.dumps(geo))
 
-    def figura(self, metrica: str) -> tuple[go.Figure, list[str]]:
+    def figura(self, metrica: str, sel: list[str]) -> tuple[go.Figure, list[str]]:
         orden = list(self.formas)
         g = (self.charts.metrics.por_entidad().set_index("ENTIDAD")
              .reindex(orden).fillna(0))
-        escala = "Greens" if metrica == "% mujeres" else "Blues"
+        g["Hombres"] = g["Investigadores"] - g["Mujeres"]
+        g["% hombres"] = (100 * g["Hombres"] / g["Investigadores"].where(
+            g["Investigadores"] > 0)).round(1).fillna(0)
+        escala = _ESCALA[metrica]
         v = g[metrica].astype(float)
         vmax = v.max() or 1.0
         colores = pc.sample_colorscale(escala, list((v / vmax).clip(0, 1) * 0.85 + 0.05))
         fig = go.Figure()
-        # La figura no depende de la selección: si cambiara, Streamlit la redibuja
-        # y la selección se pierde. Plotly resalta los puntos elegidos por sí solo.
+        # La selección vive en session_state y se dibuja con selectedpoints.
         for (xs, ys, _), color in zip(self.formas.values(), colores):
             fig.add_trace(go.Scatter(
                 x=xs, y=ys, mode="lines", fill="toself", fillcolor=color,
@@ -84,10 +90,11 @@ class MapaSelector:
         cx = [self.formas[n][2][0] for n in orden]
         cy = [self.formas[n][2][1] for n in orden]
         custom = g[["Investigadores", "Mujeres", "% mujeres",
-                    "% del total nacional"]].to_numpy()
+                    "Hombres", "% hombres"]].to_numpy()
         fig.add_trace(go.Scatter(
             x=cx, y=cy, mode="markers", text=orden, customdata=custom,
             name="entidades", showlegend=False,
+            selectedpoints=[orden.index(n) for n in sel] if sel else None,
             marker=dict(size=13, color=v, colorscale=escala, cmin=0, cmax=vmax,
                         line=dict(color="white", width=1.5),
                         colorbar=dict(title=metrica, thickness=14)),
@@ -95,7 +102,7 @@ class MapaSelector:
             unselected=dict(marker=dict(opacity=0.35)),
             hovertemplate=("<b>%{text}</b><br>Investigadores %{customdata[0]:,}"
                            "<br>Mujeres %{customdata[1]:,} (%{customdata[2]}%)"
-                           "<br>%{customdata[3]}% del total nacional<extra></extra>")))
+                           "<br>Hombres %{customdata[3]:,} (%{customdata[4]}%)<extra></extra>")))
         # Encuadre fijo: ejes en grados, sin zoom; misma escala en x e y a ~23° N.
         # dragmode="pan" con ejes fijos: el mapa no se mueve y el clic selecciona
         # (con dragmode="select" un clic solo borra la selección).
@@ -108,10 +115,10 @@ class MapaSelector:
         return fig, orden
 
     def render(self) -> list[str]:
-        st.subheader("Mapa por entidad federativa")
-        metrica = st.radio("Métrica", ChartBuilder.METRICAS_MAPA, horizontal=True,
+        metrica = st.radio("Métrica", _METRICAS, horizontal=True,
                            label_visibility="collapsed")
-        fig, orden = self.figura(metrica)
+        actual = st.session_state.setdefault("_sel_estados", [])
+        fig, orden = self.figura(metrica, actual)
         # Cambiar la key es la única forma de borrar la selección de un plotly_chart.
         ver = st.session_state.setdefault("_mapa_ver", 0)
         ev = st.plotly_chart(fig, use_container_width=True, key=f"mapa_sel_{ver}",
@@ -128,15 +135,29 @@ class MapaSelector:
                 n = orden[idx]
                 if n not in sel:
                     sel.append(n)
+        # La selección la lleva la app, no plotly: cada evento suma sus estados (un
+        # clic sobre un estado ya elegido lo quita) y se cambia la key para que el
+        # siguiente evento llegue limpio. Los eventos vacíos (al redibujar por año o
+        # métrica) se ignoran.
+        if sel:
+            if len(sel) == 1 and sel[0] in actual:
+                nuevo = [n for n in actual if n != sel[0]]
+            else:
+                nuevo = actual + [n for n in sel if n not in actual]
+            st.session_state["_sel_estados"] = nuevo
+            st.session_state["_mapa_ver"] = ver + 1
+            st.rerun()
+        sel = actual
         info, boton = st.columns([5, 1], vertical_alignment="center")
         if sel:
             info.markdown("**Selección:** " + ", ".join(sel))
             if boton.button("Ver todo el país", use_container_width=True):
                 st.session_state["_mapa_ver"] = ver + 1
+                st.session_state["_sel_estados"] = []
                 st.rerun()
         else:
-            info.caption("Clic en el punto de un estado para ver su evolución; "
-                         "Shift+clic, recuadro o lazo (barra del mapa) para varios.")
+            info.caption("Clic en el punto de un estado para agregarlo (otro clic lo "
+                         "quita); también recuadro o lazo (barra del mapa).")
         return sel
 
 
@@ -177,21 +198,22 @@ class DashboardV2(Dashboard):
         der.title(self.TITLE)
         der.caption(self.SUBTITLE)
 
-    def _sidebar(self) -> tuple[tuple[int, int], list[str]]:
-        st.sidebar.title("Filtros")
-        years = self.repo.years
-        yr = st.sidebar.select_slider("Año", options=years,
-                                      value=(years[0], years[-1]))
-        if isinstance(yr, int):
-            yr = (yr, yr)
-        generos = st.sidebar.multiselect("Género", self.repo.generos,
-                                         default=self.repo.generos, key="f_genero")
+    TODOS = "2015–2025"
+
+    def _anio(self) -> int | None:
+        """Botones de año sobre el mapa (como en el portafolio). None = toda la serie."""
+        years = list(self.repo.years)
+        v = st.segmented_control("Año", options=[self.TODOS, *years],
+                                 default=self.TODOS, key="anio_mapa",
+                                 label_visibility="collapsed")
+        return None if v in (None, self.TODOS) else int(v)
+
+    def _sidebar(self) -> None:
         st.sidebar.caption(
             "Fuente: [Archivo histórico del SNII]"
             "(https://secihti.mx/snii/archivo-historico-del-snii/). "
             "2022 excluido (archivo oficial no utilizable). Género por título, CVU "
             "y nombre en otros años; áreas homologadas a 8 ejes comparables.")
-        return tuple(yr), generos
 
     def _estado(self, yr, generos, estados) -> FilterState:
         r = self.repo
@@ -213,7 +235,7 @@ class DashboardV2(Dashboard):
                           legend=dict(orientation="h", y=-0.2))
         return fig
 
-    def _spiders(self, sel: list[str], yr: tuple[int, int],
+    def _spiders(self, sel: list[str], anio_mapa: int | None,
                  generos: list[str]) -> None:
         """Telarañas nivel × área × género, una fila por estado seleccionado.
 
@@ -223,11 +245,13 @@ class DashboardV2(Dashboard):
         """
         st.subheader("Spider web: nivel × área × género")
         anios = list(self.repo.years)
+        inicial = anio_mapa or anios[-1]
+        # la clave depende del año del mapa: al cambiarlo, el spider lo sigue
         anio = st.segmented_control("Año del spider web", options=anios,
-                                    default=anios[-1], key="anio_spider",
+                                    default=inicial, key=f"anio_spider_{anio_mapa}",
                                     label_visibility="collapsed")
         if anio is None:  # se des-seleccionó el botón activo
-            anio = anios[-1]
+            anio = inicial
         st.caption("Investigadores por área de conocimiento y género en cada nivel. "
                    "La escala de cada nivel es la misma en todos los años para ese "
                    "estado. *Interdisciplinaria* vale 0 antes de 2023 (no existía).")
@@ -247,13 +271,15 @@ class DashboardV2(Dashboard):
         st.set_page_config(page_title="SNI Explorer · padrón SNI/SNII",
                            page_icon=str(ICONO), layout="wide")
         self._header()
-        yr, generos = self._sidebar()
-        if not generos:
-            st.warning("Selecciona al menos un género.")
-            return
+        self._sidebar()
+        generos = list(self.repo.generos)
+        kpi_slot = st.container()
+        st.subheader("Mapa por entidad federativa")
+        anio_mapa = self._anio()
+        years = self.repo.years
+        yr = (anio_mapa, anio_mapa) if anio_mapa else (years[0], years[-1])
 
         base = self.repo.filter(self._estado(yr, generos, None))
-        kpi_slot = st.container()
         sel = MapaSelector(self.repo, base).render()
 
         dff = self.repo.filter(self._estado(yr, generos, sel)) if sel else base
@@ -268,7 +294,7 @@ class DashboardV2(Dashboard):
                            "sin entidad o en el extranjero: no se muestran en el mapa.")
             self._desgloses(charts)
         else:
-            self._spiders(sel, yr, generos)
+            self._spiders(sel, anio_mapa, generos)
             with st.expander("Evolución por área y por nivel (series anuales)"):
                 st.plotly_chart(self._evolucion(dff, "AREA", sorted(self.repo.areas),
                                                 "Área"), use_container_width=True)

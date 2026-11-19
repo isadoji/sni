@@ -5,11 +5,13 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
 ## Versiones
 
 - **Versión 2 (la que corre en Render desde 2026-11-18)**, `streamlit_app.py` →
-  `sni_dashboard/app_v2.py`. Barra lateral solo con **Año** y **Género**; el
-  **mapa es el selector de entidades**: siempre muestra las 32 entidades con el
-  mismo encuadre (no se reescala ni borra estados al seleccionar). Clic en el punto
-  de un estado lo selecciona; Shift+clic, recuadro o lazo seleccionan varios; el
-  botón *Ver todo el país* borra la selección.
+  `sni_dashboard/app_v2.py`. Sin filtros en la barra lateral (solo la fuente):
+  el año se elige con **botones sobre el mapa** (*2015–2025* = toda la serie, o un
+  año), siempre con ambos géneros. El **mapa es el selector de entidades**: siempre
+  muestra las 32 entidades con el mismo encuadre. Métricas del mapa: investigadores,
+  % mujeres, % hombres. Clic en el punto de un estado lo agrega y otro clic lo quita;
+  recuadro o lazo agregan varios; el botón *Ver todo el país* borra la selección. La
+  selección se conserva al cambiar de año o de métrica.
   - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,
     nivel, área, región).
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
@@ -21,9 +23,11 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
     barra lateral).
   - El mapa son polígonos en ejes cartesianos (lon, lat) con un punto por estado,
     no un coroplético geo: en Streamlit un coroplético geo no emite selección. La
-    figura no depende de la selección (si cambiara, Streamlit la redibuja y la
-    selección se pierde) y usa `dragmode="pan"` con ejes fijos (con
-    `dragmode="select"` un clic borra la selección en vez de seleccionar).
+    selección la guarda la app en `session_state` (no plotly): cada evento suma o
+    quita estados, la figura los dibuja con `selectedpoints` y la key del widget
+    cambia para que el siguiente evento llegue limpio (al redibujar, plotly olvida
+    su propia selección y Shift+clic ya no suma). Usa `dragmode="pan"` con ejes
+    fijos (con `dragmode="select"` un clic borra la selección en vez de seleccionar).
 - **Versión 1 (respaldo)**, `streamlit_app_v1.py` → `sni_dashboard/app.py`: barra
   con filtros por año, área, nivel, género, región y entidad, mapa coroplético y
   desgloses. Tag git `app-v1`. Para volver a ella en Render, cambiar el start
