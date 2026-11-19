@@ -17,8 +17,9 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   *2015–2025* (suma de todos los años) la escala va de 0 al máximo de esa vista. Clic en el punto de un estado lo agrega y otro clic lo quita;
   recuadro o lazo agregan varios; el botón *Ver todo el país* borra la selección. La
   selección se conserva al cambiar de año o de métrica.
-  - Sin selección: KPIs nacionales y las 4 gráficas (evolución por año y género,
-    nivel, área, región).
+  - Sin selección: KPIs nacionales y las gráficas de evolución por año y género,
+    nivel y área, y abajo, a todo lo ancho, una por estado (barras horizontales de
+    mayor a menor, por género; sin *Sin dato / Extranjero*). La v1 conserva la de región.
   - Con uno o más estados: KPIs de la selección y, por cada estado, un spider web
     nivel × área × género (como el de la página principal del portafolio: mismo
     orden de ejes y etiquetas), en paneles 3 × 2, del año elegido con los botones

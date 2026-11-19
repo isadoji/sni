@@ -92,6 +92,9 @@ class ChartBuilder:
         fig = px.bar(d.sort_values("NIVEL"), x="NIVEL", y="N", color="GENERO",
                      barmode="group", color_discrete_map=self._COLOR,
                      labels={"N": "Investigadores"})
+        # sin esto plotly ve "1","2","3" como números, hace el eje lineal y omite C y E
+        fig.update_xaxes(type="category", categoryorder="array",
+                         categoryarray=config.ORDEN_NIVELES)
         fig.update_layout(height=340, margin=dict(t=10))
         return fig
 
@@ -112,6 +115,20 @@ class ChartBuilder:
                      orientation="h", barmode="stack", color_discrete_map=self._COLOR,
                      labels={"N": "Investigadores", "REGION": ""})
         fig.update_layout(height=340, margin=dict(t=10))
+        return fig
+
+    def por_estado(self) -> go.Figure:
+        """Barras horizontales por entidad (de mayor a menor, arriba la mayor), por género.
+        Sin *Sin dato / Extranjero*, que no es un estado."""
+        d = self.dff[self.dff["ENTIDAD"] != config.SIN_DATO]
+        d = d.groupby(["ENTIDAD", "GENERO"])["N"].sum().reset_index()
+        orden = d.groupby("ENTIDAD")["N"].sum().sort_values(ascending=False).index.tolist()
+        fig = px.bar(d, x="N", y="ENTIDAD", color="GENERO", orientation="h",
+                     barmode="stack", color_discrete_map=self._COLOR,
+                     category_orders={"ENTIDAD": orden},
+                     labels={"N": "Investigadores", "ENTIDAD": ""})
+        fig.update_layout(height=22 * len(orden) + 80, margin=dict(t=10),
+                          legend=dict(orientation="h", y=1.02, yanchor="bottom", x=0))
         return fig
 
     def tabla(self) -> pd.DataFrame:
