@@ -24,7 +24,11 @@ class SNIRepository:
                    geojson_path: Path = config.GEOJSON) -> "SNIRepository":
         df = pd.read_csv(csv_path)
         df["AÑO"] = df["AÑO"].astype(int)
+        df["ENTIDAD"] = df["ENTIDAD"].replace(config.ETIQUETA_ENTIDAD)
         geo = json.loads(Path(geojson_path).read_text())
+        for f in geo["features"]:
+            nombre = f["properties"]["name"]
+            f["properties"]["name"] = config.ETIQUETA_ENTIDAD.get(nombre, nombre)
         return cls(df, geo)
 
     # -- catálogos de opciones (para los widgets) --------------------------

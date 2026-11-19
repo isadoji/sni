@@ -37,6 +37,10 @@ ESTADOS_CANONICOS = [
     "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas",
 ]
 
+# Nombre que muestra la app (mapa, gráficas, tooltips) cuando el canónico se presta a
+# confusión. Se aplica al cargar (data.py, charts.py); el CSV y el GeoJSON no cambian.
+ETIQUETA_ENTIDAD = {"México": "Estado de México"}
+
 # --- 8 regiones geográficas de México ------------------------------------------
 REGION_POR_ESTADO = {
     "Baja California": "Noroeste", "Baja California Sur": "Noroeste",

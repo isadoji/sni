@@ -152,6 +152,7 @@ class ChartBuilder:
         d = self.dff[self.dff["ENTIDAD"] != config.SIN_DATO]
         n = d.groupby(["ENTIDAD", "AÑO"])["N"].sum().reset_index()
         pob = pd.read_csv(config.POBLACION_CSV)
+        pob["ENTIDAD"] = pob["ENTIDAD"].replace(config.ETIQUETA_ENTIDAD)
         n = n.merge(pob, on=["ENTIDAD", "AÑO"], how="inner")
         n["TASA"] = n["N"] / n["POB"] * 1e5
         t = n.groupby("ENTIDAD").agg(TASA=("TASA", "mean"), N=("N", "mean"),

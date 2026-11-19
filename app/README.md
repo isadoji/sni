@@ -144,7 +144,9 @@ volver a correr el ETL.
   `SNI2025_CLASIFICADO.xlsx` no se usa.
 - La **taxonomía de áreas** cambió de 7 a 9 ejes en 2022; se homologa a 8 ejes
   comparables en toda la serie (misma lógica que `sni_historico_genero.ipynb`).
-- **Entidad**: se normaliza a los 32 nombres del GeoJSON; los registros sin
+- **Entidad**: se normaliza a los 32 nombres del GeoJSON (la app muestra *México*
+  como *Estado de México*, `config.ETIQUETA_ENTIDAD`, aplicado al cargar; los CSV no
+  cambian); los registros sin
   entidad o en el extranjero (~6.6 %) van al bucket `Sin dato / Extranjero` y no
   aparecen en el mapa.
 - **8 regiones geográficas**: Noroeste, Noreste, Occidente, Oriente, Centronorte,
