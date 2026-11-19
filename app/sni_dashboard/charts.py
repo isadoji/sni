@@ -108,27 +108,25 @@ class ChartBuilder:
         fig.update_layout(height=380, margin=dict(t=10))
         return fig
 
-    def por_region(self) -> go.Figure:
+    CENTRO_SIN_CDMX = "Centrosur sin CDMX"
+
+    def por_region(self, centro_sin_cdmx: bool = False) -> go.Figure:
+        """Investigadores por región y género. Con ``centro_sin_cdmx`` agrega, después de
+        Centrosur, una barra de referencia con Centrosur sin la Ciudad de México (Estado de
+        México y Morelos), que ya están contados en Centrosur: no se suma al total."""
         d = self.dff.groupby(["REGION", "GENERO"])["N"].sum().reset_index()
-        d["REGION"] = pd.Categorical(d["REGION"], config.ORDEN_REGIONES, ordered=True)
+        orden = list(config.ORDEN_REGIONES)
+        if centro_sin_cdmx:
+            c = self.dff[(self.dff["REGION"] == "Centrosur")
+                         & (self.dff["ENTIDAD"] != "Ciudad de México")]
+            c = c.groupby("GENERO")["N"].sum().reset_index().assign(REGION=self.CENTRO_SIN_CDMX)
+            d = pd.concat([d, c], ignore_index=True)
+            orden.insert(orden.index("Centrosur") + 1, self.CENTRO_SIN_CDMX)
+        d["REGION"] = pd.Categorical(d["REGION"], orden, ordered=True)
         fig = px.bar(d.sort_values("REGION"), x="N", y="REGION", color="GENERO",
                      orientation="h", barmode="stack", color_discrete_map=self._COLOR,
                      labels={"N": "Investigadores", "REGION": ""})
         fig.update_layout(height=340, margin=dict(t=10))
-        return fig
-
-    def por_estado(self) -> go.Figure:
-        """Barras horizontales por entidad (de mayor a menor, arriba la mayor), por género.
-        Sin *Sin dato / Extranjero*, que no es un estado."""
-        d = self.dff[self.dff["ENTIDAD"] != config.SIN_DATO]
-        d = d.groupby(["ENTIDAD", "GENERO"])["N"].sum().reset_index()
-        orden = d.groupby("ENTIDAD")["N"].sum().sort_values(ascending=False).index.tolist()
-        fig = px.bar(d, x="N", y="ENTIDAD", color="GENERO", orientation="h",
-                     barmode="stack", color_discrete_map=self._COLOR,
-                     category_orders={"ENTIDAD": orden},
-                     labels={"N": "Investigadores", "ENTIDAD": ""})
-        fig.update_layout(height=22 * len(orden) + 80, margin=dict(t=10),
-                          legend=dict(orientation="h", y=1.02, yanchor="bottom", x=0))
         return fig
 
     def tabla(self) -> pd.DataFrame:

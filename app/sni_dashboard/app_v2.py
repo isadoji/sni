@@ -308,8 +308,8 @@ class DashboardV2(Dashboard):
                             use_container_width=True, key=f"spider_{estado}")
 
     def _desgloses(self, charts: ChartBuilder) -> None:
-        """Como la v1, pero en vez de la gráfica por región: una por estado, de mayor a
-        menor, a todo lo ancho (son 32 barras)."""
+        """Como la v1, con una barra extra en la gráfica por región: Centrosur sin la
+        Ciudad de México, que concentra la mayoría de la región."""
         izq, der = st.columns(2)
         with izq:
             st.subheader("Evolución por año y género")
@@ -319,8 +319,10 @@ class DashboardV2(Dashboard):
         with der:
             st.subheader("Por área de conocimiento")
             st.plotly_chart(charts.por_area(), use_container_width=True)
-        st.subheader("Por estado")
-        st.plotly_chart(charts.por_estado(), use_container_width=True)
+            st.subheader("Por región")
+            st.plotly_chart(charts.por_region(centro_sin_cdmx=True), use_container_width=True)
+            st.caption("*Centrosur sin CDMX* (Estado de México y Morelos) es una barra de "
+                       "referencia: esos estados ya están en Centrosur.")
 
     def run(self) -> None:
         st.set_page_config(page_title="SNI Explorer · padrón SNI/SNII",
