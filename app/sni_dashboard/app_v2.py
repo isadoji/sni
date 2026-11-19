@@ -309,7 +309,7 @@ class DashboardV2(Dashboard):
 
     def _desgloses(self, charts: ChartBuilder) -> None:
         """Las 4 gráficas de la v1 (evolución, nivel, área, región) y abajo, lado a lado,
-        investigadores por 10 000 habitantes y % de mujeres y de hombres por estado."""
+        investigadores por 100 000 habitantes y % de mujeres y de hombres por estado."""
         izq, der = st.columns(2)
         with izq:
             st.subheader("Evolución por año y género")
@@ -323,11 +323,11 @@ class DashboardV2(Dashboard):
             st.plotly_chart(charts.por_region(), use_container_width=True)
         izq, der = st.columns(2)
         with izq:
-            st.subheader("Investigadores por 10 000 habitantes")
+            st.subheader("Investigadores por 100 000 habitantes")
             st.caption("Hombres y mujeres juntos, sobre la población del estado en el mismo "
                        "año (proyecciones de población de CONAPO). En *2015–2025* es el "
                        "promedio de las tasas anuales.")
-            st.plotly_chart(charts.por_10mil_habitantes(), use_container_width=True)
+            st.plotly_chart(charts.por_100mil_habitantes(), use_container_width=True)
         with der:
             st.subheader("% de mujeres y de hombres por estado")
             st.caption("Proporción dentro del SNII de cada estado, ordenada de mayor a menor % "

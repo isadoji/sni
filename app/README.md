@@ -19,10 +19,10 @@ App de [Streamlit](https://streamlit.io) sobre la serie histórica 2015-2025.
   selección se conserva al cambiar de año o de métrica.
   - Sin selección: KPIs nacionales y las 4 gráficas de la v1 (evolución por año y
     género, nivel, área, región). Abajo, lado a lado:
-    - **investigadores por cada 10 000 habitantes** por estado (ambos sexos, de mayor a
+    - **investigadores por cada 100 000 habitantes** por estado (ambos sexos, de mayor a
       menor), con la población de CONAPO del mismo año; en *2015–2025* es el promedio
       de las tasas anuales (sumar personas contaría a la misma una vez por año).
-      2025: CDMX 15.2, Morelos 5.8 … Guerrero 1.0, Chiapas 1.0;
+      2025: CDMX 152, Morelos 58 … Guerrero 10, Chiapas 10;
     - **% de mujeres y de hombres por estado** (proporción dentro del SNII de cada
       estado, suman 100 %, de mayor a menor % de mujeres, línea en 50 %; el tooltip da
       los conteos). Compara la brecha sin importar el tamaño del estado; en

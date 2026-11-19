@@ -144,8 +144,8 @@ class ChartBuilder:
                                       traceorder="normal"))
         return fig
 
-    def por_10mil_habitantes(self) -> go.Figure:
-        """Investigadores del SNII (ambos sexos) por cada 10 000 habitantes del estado,
+    def por_100mil_habitantes(self) -> go.Figure:
+        """Investigadores del SNII (ambos sexos) por cada 100 000 habitantes del estado,
         de mayor a menor. Población de CONAPO del mismo año (``config.POBLACION_CSV``);
         con varios años es el promedio de las tasas anuales (no la suma de personas,
         que contaría a la misma persona una vez por año)."""
@@ -153,7 +153,7 @@ class ChartBuilder:
         n = d.groupby(["ENTIDAD", "AÑO"])["N"].sum().reset_index()
         pob = pd.read_csv(config.POBLACION_CSV)
         n = n.merge(pob, on=["ENTIDAD", "AÑO"], how="inner")
-        n["TASA"] = n["N"] / n["POB"] * 1e4
+        n["TASA"] = n["N"] / n["POB"] * 1e5
         t = n.groupby("ENTIDAD").agg(TASA=("TASA", "mean"), N=("N", "mean"),
                                      POB=("POB", "mean")).sort_values("TASA", ascending=False)
         anios = sorted(n["AÑO"].unique())
@@ -161,12 +161,12 @@ class ChartBuilder:
         fig = go.Figure(go.Bar(
             y=t.index, x=t["TASA"], orientation="h", marker_color="#4a6fa5",
             marker_line_width=0, customdata=list(zip(t["N"], t["POB"])),
-            hovertemplate="%{y}: %{x:.2f} por 10 000 hab.<br>" + nota +
+            hovertemplate="%{y}: %{x:.1f} por 100 000 hab.<br>" + nota +
                           ": %{customdata[0]:,.0f} investigadores, "
                           "%{customdata[1]:,.0f} habitantes<extra></extra>"))
         fig.update_layout(height=22 * len(t) + 80, margin=dict(t=35),
                           yaxis=dict(autorange="reversed"),
-                          xaxis=dict(title="Investigadores por 10 000 habitantes"))
+                          xaxis=dict(title="Investigadores por 100 000 habitantes"))
         return fig
 
     def tabla(self) -> pd.DataFrame:
