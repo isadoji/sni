@@ -32,21 +32,19 @@ _PALETA = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
 _ESTADOS_GEO: set = set()
 _RANGO_FIJO = None
 _METRICAS = ["Investigadores", "% mujeres", "% hombres"]
-def _rango_fijo(df: pd.DataFrame) -> dict[str, tuple[float, float]]:
-    """Escala de color fija para todos los años, para que se vea el cambio.
+def _rango_fijo(df: pd.DataFrame) -> dict[str, float]:
+    """Máximo de cada métrica entre los estados en todos los años individuales.
 
-    Investigadores: 0 al máximo de un estado en un año. Porcentajes: mínimo y
-    máximo de los estados en todos los años, redondeados a múltiplos de 5.
+    Con él se fija la escala de color (0 a ese máximo) de los años individuales,
+    para que al cambiar de año se vea el cambio.
     """
-    import math
     d = df
     n = d.groupby(["AÑO", "ENTIDAD"])["N"].sum()
     m = d[d["GENERO"] == "MUJER"].groupby(["AÑO", "ENTIDAD"])["N"].sum()
     n = n[n.index.get_level_values("ENTIDAD").isin(_ESTADOS_GEO)]
-    pm = (100 * m.reindex(n.index).fillna(0) / n)
-    lo, hi = 5 * math.floor(pm.min() / 5), 5 * math.ceil(pm.max() / 5)
-    return {"Investigadores": (0.0, float(n.max())), "% mujeres": (lo, hi),
-            "% hombres": (100 - hi, 100 - lo)}
+    pm = (100 * m.reindex(n.index).fillna(0) / n).round(1)
+    return {"Investigadores": float(n.max()), "% mujeres": float(pm.max()),
+            "% hombres": float((100 - pm).max())}
 
 
 _ESCALA = {"Investigadores": "Blues", "% mujeres": "Greens", "% hombres": "Purples"}
@@ -98,10 +96,10 @@ class MapaSelector:
             g["Investigadores"] > 0)).round(1).fillna(0)
         escala = _ESCALA[metrica]
         v = g[metrica].astype(float)
-        if metrica == "Investigadores" and self.toda_la_serie:
-            vmin, vmax = 0.0, float(v.max()) or 1.0  # suma de años: otra magnitud
-        else:
-            vmin, vmax = _RANGO_FIJO[metrica]
+        if self.toda_la_serie:  # suma de años: escala propia, de 0 a su máximo
+            vmin, vmax = 0.0, float(v.max()) or 1.0
+        else:  # años individuales: 0 al máximo de todos los años individuales
+            vmin, vmax = 0.0, _RANGO_FIJO[metrica]
         colores = pc.sample_colorscale(
             escala, list(((v - vmin) / (vmax - vmin)).clip(0, 1) * 0.85 + 0.05))
         fig = go.Figure()
